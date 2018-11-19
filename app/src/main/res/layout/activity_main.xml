@@ -14,13 +14,13 @@
 
     <Button
         android:id="@+id/Athletes"
-        style="@style/Widget.AppCompat.Button"
-        android:layout_width="312dp"
+        style="@android:style/Widget.DeviceDefault.Button"
+        android:layout_width="0dp"
         android:layout_height="60dp"
         android:layout_marginStart="48dp"
         android:layout_marginEnd="48dp"
         android:layout_marginBottom="48dp"
-        android:text="Athletes"
+        android:text="@string/athlete_button"
         android:textAppearance="@android:style/TextAppearance.Material.Widget.Button"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -30,17 +30,34 @@
 
     <Button
         android:id="@+id/Capture"
-        style="@style/Widget.AppCompat.Button"
-        android:layout_width="312dp"
+        style="@android:style/Widget.DeviceDefault.Button"
+        android:layout_width="0dp"
         android:layout_height="60dp"
         android:layout_marginStart="48dp"
         android:layout_marginEnd="48dp"
         android:layout_marginBottom="12dp"
-        android:text="Capture"
+        android:text="@string/capture_button"
+        android:textAppearance="@android:style/TextAppearance.Material.Widget.Button"
         android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/Athletes"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="64dp"
+        android:fontFamily="sans-serif"
+        android:text="High Jump Analysis"
+        android:textAlignment="center"
+        android:textAllCaps="false"
+        android:textColor="@android:color/white"
+        android:textSize="30sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

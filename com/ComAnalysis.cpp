@@ -5,6 +5,7 @@
 #include <vector>
 #include <sstream>
 #include <iomanip>
+#include <opencv2/opencv.hpp>
 
 // COM location for each limb
 #define SHIN_DISTAL 0.567
@@ -24,49 +25,55 @@
 
 using namespace std;
 
-class JointCoord {
-private:
-
+class JointCoord
+{
+  private:
     float x;
     float y;
     float c;
 
-public:
-
-    JointCoord() {
+  public:
+    JointCoord()
+    {
         x = 0;
         y = 0;
         c = 0;
     }
 
-    void set_x(float X) {
+    void set_x(float X)
+    {
         x = X;
     }
 
-    void set_y(float Y) {
+    void set_y(float Y)
+    {
         y = Y;
     }
 
-    void set_c(float C) {
+    void set_c(float C)
+    {
         c = C;
     }
 
-    float get_x() {
+    float get_x()
+    {
         return x;
     }
 
-    float get_y() {
+    float get_y()
+    {
         return y;
     }
 
-    float get_c() {
+    float get_c()
+    {
         return c;
     }
 };
 
-class LimbCoord {
-private:
-
+class LimbCoord
+{
+  private:
     // Low and high positions of joint, ex. rWrist and rElbow respectively for
     // rLowArm
     float lx;
@@ -76,9 +83,9 @@ private:
     float comx;
     float comy;
 
-public:
-
-    LimbCoord() {
+  public:
+    LimbCoord()
+    {
         lx = 0;
         ly = 0;
         hx = 0;
@@ -87,7 +94,8 @@ public:
         comy = 0;
     }
 
-    LimbCoord(float LX, float LY, float HX, float HY) {
+    LimbCoord(float LX, float LY, float HX, float HY)
+    {
         lx = LX;
         ly = LY;
         hx = HX;
@@ -96,56 +104,69 @@ public:
         comy = 0;
     }
 
-    void set_lx(float LX) {
+    void set_lx(float LX)
+    {
         lx = LX;
     }
 
-    void set_hx(float HX) {
+    void set_hx(float HX)
+    {
         hx = HX;
     }
 
-    void set_ly(float LY) {
+    void set_ly(float LY)
+    {
         ly = LY;
     }
 
-    void set_hy(float HY) {
+    void set_hy(float HY)
+    {
         hy = HY;
     }
 
-    void set_comx(float COMX) {
+    void set_comx(float COMX)
+    {
         comx = COMX;
     }
 
-    void set_comy(float COMY) {
+    void set_comy(float COMY)
+    {
         comy = COMY;
     }
 
-    float get_lx() {
+    float get_lx()
+    {
         return lx;
     }
 
-    float get_hx() {
+    float get_hx()
+    {
         return hx;
     }
 
-    float get_ly() {
+    float get_ly()
+    {
         return ly;
     }
 
-    float get_hy() {
+    float get_hy()
+    {
         return hy;
     }
 
-    float get_comx() {
+    float get_comx()
+    {
         return comx;
     }
 
-    float get_comy() {
+    float get_comy()
+    {
         return comy;
     }
 };
 
-void get_joint_pose_data(string::iterator &it, vector<JointCoord> &joint) {
+void get_joint_pose_data(string::iterator &it, vector<JointCoord> &joint)
+{
 
     string curX;
     string curY;
@@ -153,17 +174,20 @@ void get_joint_pose_data(string::iterator &it, vector<JointCoord> &joint) {
     JointCoord curJoint;
 
     // Get pose data
-    while (*it != ',') {
+    while (*it != ',')
+    {
         curX += *it;
         it++;
     }
     it++;
-    while (*it != ',') {
+    while (*it != ',')
+    {
         curY += *it;
         it++;
     }
     it++;
-    while (*it != ',') {
+    while (*it != ',')
+    {
         curC += *it;
         it++;
     }
@@ -175,41 +199,45 @@ void get_joint_pose_data(string::iterator &it, vector<JointCoord> &joint) {
 }
 
 void get_frame_pose_data(
-        vector<JointCoord> &nose,
-        vector<JointCoord> &neck,
-        vector<JointCoord> &rShoulder,
-        vector<JointCoord> &rElbow,
-        vector<JointCoord> &rWrist,
-        vector<JointCoord> &lShoulder,
-        vector<JointCoord> &lElbow,
-        vector<JointCoord> &lWrist,
-        vector<JointCoord> &midHip,
-        vector<JointCoord> &rHip,
-        vector<JointCoord> &rKnee,
-        vector<JointCoord> &rAnkle,
-        vector<JointCoord> &lHip,
-        vector<JointCoord> &lKnee,
-        vector<JointCoord> &lAnkle,
-        vector<JointCoord> &rEye,
-        vector<JointCoord> &lEye,
-        vector<JointCoord> &rEar,
-        vector<JointCoord> &lEar,
-        vector<JointCoord> &lBigToe,
-        vector<JointCoord> &lSmallToe,
-        vector<JointCoord> &lHeel,
-        vector<JointCoord> &rBigToe,
-        vector<JointCoord> &rSmallToe,
-        vector<JointCoord> &rHeel,
-        string jsonData,
-        int peopleNum) {
+    vector<JointCoord> &nose,
+    vector<JointCoord> &neck,
+    vector<JointCoord> &rShoulder,
+    vector<JointCoord> &rElbow,
+    vector<JointCoord> &rWrist,
+    vector<JointCoord> &lShoulder,
+    vector<JointCoord> &lElbow,
+    vector<JointCoord> &lWrist,
+    vector<JointCoord> &midHip,
+    vector<JointCoord> &rHip,
+    vector<JointCoord> &rKnee,
+    vector<JointCoord> &rAnkle,
+    vector<JointCoord> &lHip,
+    vector<JointCoord> &lKnee,
+    vector<JointCoord> &lAnkle,
+    vector<JointCoord> &rEye,
+    vector<JointCoord> &lEye,
+    vector<JointCoord> &rEar,
+    vector<JointCoord> &lEar,
+    vector<JointCoord> &lBigToe,
+    vector<JointCoord> &lSmallToe,
+    vector<JointCoord> &lHeel,
+    vector<JointCoord> &rBigToe,
+    vector<JointCoord> &rSmallToe,
+    vector<JointCoord> &rHeel,
+    string jsonData,
+    int peopleNum)
+{
 
-    if (peopleNum == 1) {
+    if (peopleNum == 1)
+    {
 
         // Iterate to first number
         string::iterator it = jsonData.begin();
         int count = 0;
-        while (count < 2) {
-            if (*it == '[') {
+        while (count < 2)
+        {
+            if (*it == '[')
+            {
                 count++;
             }
             it++;
@@ -241,8 +269,9 @@ void get_frame_pose_data(
         get_joint_pose_data(it, rBigToe);
         get_joint_pose_data(it, rSmallToe);
         get_joint_pose_data(it, rHeel);
-
-    } else {
+    }
+    else
+    {
         // Set everything to zero
         JointCoord zeros;
         nose.push_back(zeros);
@@ -273,40 +302,48 @@ void get_frame_pose_data(
     }
 }
 
-void approx_missing_data(vector<JointCoord> &joint) {
+void approx_missing_data(vector<JointCoord> &joint)
+{
 
     int lastFrame = joint.size();
 
     // Iterate to first data point for x
     int i = 0;
-    while (joint[i].get_x() == 0 && i < lastFrame) {
+    while (joint[i].get_x() == 0 && i < lastFrame)
+    {
         i++;
     }
 
     // Approximate all missing points for x
-    while (i < lastFrame) {
+    while (i < lastFrame)
+    {
 
         // Find the first area with missing data
-        while (joint[i].get_x() != 0 && i < lastFrame) {
+        while (joint[i].get_x() != 0 && i < lastFrame)
+        {
             i++;
         }
         int j = i - 1;
 
-        if (i >= lastFrame) break;
+        if (i >= lastFrame)
+            break;
 
         // Find other side with data
-        while (joint[i].get_x() == 0 && i < lastFrame) {
+        while (joint[i].get_x() == 0 && i < lastFrame)
+        {
             i++;
         }
 
-        if (i >= lastFrame) break;
+        if (i >= lastFrame)
+            break;
 
         // Make approximations
         float difference = joint[i].get_x() - joint[j].get_x();
         int numFrames = i - j;
-        float incrementAmt = difference / (float) numFrames;
+        float incrementAmt = difference / (float)numFrames;
         int incrementNum = 1;
-        for (int k = j + 1; k < i; k++) {
+        for (int k = j + 1; k < i; k++)
+        {
             joint[k].set_x(joint[j].get_x() + (incrementAmt * incrementNum));
             incrementNum++;
         }
@@ -314,34 +351,41 @@ void approx_missing_data(vector<JointCoord> &joint) {
 
     // Iterate to first data point for y
     i = 0;
-    while (joint[i].get_y() == 0 && i < lastFrame) {
+    while (joint[i].get_y() == 0 && i < lastFrame)
+    {
         i++;
     }
 
     // Approximate all missing points for y
-    while (i < lastFrame) {
+    while (i < lastFrame)
+    {
 
         // Find the first area with missing data
-        while (joint[i].get_y() != 0 && i < lastFrame) {
+        while (joint[i].get_y() != 0 && i < lastFrame)
+        {
             i++;
         }
         int j = i - 1;
 
-        if (i >= lastFrame) break;
+        if (i >= lastFrame)
+            break;
 
         // Find other side with data
-        while (joint[i].get_y() == 0 && i < lastFrame) {
+        while (joint[i].get_y() == 0 && i < lastFrame)
+        {
             i++;
         }
 
-        if (i >= lastFrame) break;
+        if (i >= lastFrame)
+            break;
 
         // Make approximations
         float difference = joint[i].get_y() - joint[j].get_y();
         int numFrames = i - j;
-        float incrementAmt = difference / (float) numFrames;
+        float incrementAmt = difference / (float)numFrames;
         int incrementNum = 1;
-        for (int k = j + 1; k < i; k++) {
+        for (int k = j + 1; k < i; k++)
+        {
             joint[k].set_y(joint[j].get_y() + (incrementAmt * incrementNum));
             incrementNum++;
         }
@@ -349,80 +393,89 @@ void approx_missing_data(vector<JointCoord> &joint) {
 }
 
 void joint_creation(vector<JointCoord> &lJoint, vector<JointCoord> &hJoint,
-        vector<LimbCoord> &curLimb) {
+                    vector<LimbCoord> &curLimb)
+{
 
-    for (int i = 0; i < lJoint.size(); i++) {
+    for (int i = 0; i < lJoint.size(); i++)
+    {
         LimbCoord limb(lJoint[i].get_x(), lJoint[i].get_y(),
-                hJoint[i].get_x(), hJoint[i].get_y());
+                       hJoint[i].get_x(), hJoint[i].get_y());
         curLimb.push_back(limb);
     }
 }
 
-void limb_com(vector<LimbCoord> &curLimb, float distal) {
+void limb_com(vector<LimbCoord> &curLimb, float distal)
+{
 
-    for (int i = 0; i < curLimb.size(); i++) {
+    for (int i = 0; i < curLimb.size(); i++)
+    {
         curLimb[i].set_comx(curLimb[i].get_lx() * distal +
-                curLimb[i].get_hx() * (1 - distal));
+                            curLimb[i].get_hx() * (1 - distal));
         curLimb[i].set_comy(curLimb[i].get_ly() * distal +
-                curLimb[i].get_hy() * (1 - distal));
+                            curLimb[i].get_hy() * (1 - distal));
     }
 }
 
-void limb_com_pelvis(vector<LimbCoord> &rPelvis) {
+void limb_com_pelvis(vector<LimbCoord> &rPelvis)
+{
 
-    for (int i = 0; i < rPelvis.size(); i++) {
+    for (int i = 0; i < rPelvis.size(); i++)
+    {
         rPelvis[i].set_comx(rPelvis[i].get_hx());
         rPelvis[i].set_comy(rPelvis[i].get_hy());
     }
 }
 
-void limb_com_head(vector<LimbCoord> &head) {
+void limb_com_head(vector<LimbCoord> &head)
+{
 
-    for (int i = 0; i < head.size(); i++) {
+    for (int i = 0; i < head.size(); i++)
+    {
         head[i].set_comx(head[i].get_hx());
         head[i].set_comy(head[i].get_hy());
     }
 }
 
 void com_calc(
-        vector<LimbCoord> &rLowLeg,
-        vector<LimbCoord> &lLowLeg,
-        vector<LimbCoord> &rUpLeg,
-        vector<LimbCoord> &lUpLeg,
-        vector<LimbCoord> &torso,
-        vector<LimbCoord> &rUpArm,
-        vector<LimbCoord> &lUpArm,
-        vector<LimbCoord> &rLowArm,
-        vector<LimbCoord> &lLowArm,
-        vector<LimbCoord> &rPelvis,
-        vector<LimbCoord> &head,
-        vector<JointCoord> &com
-        ) {
+    vector<LimbCoord> &rLowLeg,
+    vector<LimbCoord> &lLowLeg,
+    vector<LimbCoord> &rUpLeg,
+    vector<LimbCoord> &lUpLeg,
+    vector<LimbCoord> &torso,
+    vector<LimbCoord> &rUpArm,
+    vector<LimbCoord> &lUpArm,
+    vector<LimbCoord> &rLowArm,
+    vector<LimbCoord> &lLowArm,
+    vector<LimbCoord> &rPelvis,
+    vector<LimbCoord> &head,
+    vector<JointCoord> &com)
+{
 
-    for (int i = 0; i < head.size(); i++) {
+    for (int i = 0; i < head.size(); i++)
+    {
         JointCoord curCOM;
         curCOM.set_x(rLowLeg[i].get_comx() * SHIN_COM +
-                lLowLeg[i].get_comx() * SHIN_COM +
-                rUpLeg[i].get_comx() * THIGH_COM +
-                lUpLeg[i].get_comx() * THIGH_COM +
-                rPelvis[i].get_comx() * PELVIS_COM +
-                torso[i].get_comx() * TORSO_COM +
-                rUpArm[i].get_comx() * BICEP_COM +
-                lUpArm[i].get_comx() * BICEP_COM +
-                rLowArm[i].get_comx() * FOREARM_COM +
-                lLowArm[i].get_comx() * FOREARM_COM +
-                head[i].get_comx() * HEAD_COM);
+                     lLowLeg[i].get_comx() * SHIN_COM +
+                     rUpLeg[i].get_comx() * THIGH_COM +
+                     lUpLeg[i].get_comx() * THIGH_COM +
+                     rPelvis[i].get_comx() * PELVIS_COM +
+                     torso[i].get_comx() * TORSO_COM +
+                     rUpArm[i].get_comx() * BICEP_COM +
+                     lUpArm[i].get_comx() * BICEP_COM +
+                     rLowArm[i].get_comx() * FOREARM_COM +
+                     lLowArm[i].get_comx() * FOREARM_COM +
+                     head[i].get_comx() * HEAD_COM);
         curCOM.set_y(rLowLeg[i].get_comy() * SHIN_COM +
-                lLowLeg[i].get_comy() * SHIN_COM +
-                rUpLeg[i].get_comy() * THIGH_COM +
-                lUpLeg[i].get_comy() * THIGH_COM +
-                rPelvis[i].get_comy() * PELVIS_COM +
-                torso[i].get_comy() * TORSO_COM +
-                rUpArm[i].get_comy() * BICEP_COM +
-                lUpArm[i].get_comy() * BICEP_COM +
-                rLowArm[i].get_comy() * FOREARM_COM +
-                lLowArm[i].get_comy() * FOREARM_COM +
-                head[i].get_comy() * HEAD_COM);
+                     lLowLeg[i].get_comy() * SHIN_COM +
+                     rUpLeg[i].get_comy() * THIGH_COM +
+                     lUpLeg[i].get_comy() * THIGH_COM +
+                     rPelvis[i].get_comy() * PELVIS_COM +
+                     torso[i].get_comy() * TORSO_COM +
+                     rUpArm[i].get_comy() * BICEP_COM +
+                     lUpArm[i].get_comy() * BICEP_COM +
+                     rLowArm[i].get_comy() * FOREARM_COM +
+                     lLowArm[i].get_comy() * FOREARM_COM +
+                     head[i].get_comy() * HEAD_COM);
         com.push_back(curCOM);
     }
 }
@@ -437,7 +490,8 @@ void com_calc(
  * detect the right person if more than one person detected
  * COM velocity and acceleration
  */
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
 
     // Set up strings for dynamic file retrieval
     const string prefix = "/home/james/ece496/openpose/output/120fps_";
@@ -453,39 +507,40 @@ int main(int argc, char** argv) {
      * Vector data is coordinate object
      * Vector length is the number of frames recorded
      */
-    vector<JointCoord> nose; // 0
-    vector<JointCoord> neck; // 1
+    vector<JointCoord> nose;      // 0
+    vector<JointCoord> neck;      // 1
     vector<JointCoord> rShoulder; // 2
-    vector<JointCoord> rElbow; // 3
-    vector<JointCoord> rWrist; // 4
+    vector<JointCoord> rElbow;    // 3
+    vector<JointCoord> rWrist;    // 4
     vector<JointCoord> lShoulder; // 5
-    vector<JointCoord> lElbow; // 6
-    vector<JointCoord> lWrist; // 7
-    vector<JointCoord> midHip; // 8
-    vector<JointCoord> rHip; // 9
-    vector<JointCoord> rKnee; // 10
-    vector<JointCoord> rAnkle; // 11
-    vector<JointCoord> lHip; // 12
-    vector<JointCoord> lKnee; // 13
-    vector<JointCoord> lAnkle; // 14
-    vector<JointCoord> rEye; // 15
-    vector<JointCoord> lEye; // 16
-    vector<JointCoord> rEar; // 17
-    vector<JointCoord> lEar; // 18
-    vector<JointCoord> lBigToe; // 19
+    vector<JointCoord> lElbow;    // 6
+    vector<JointCoord> lWrist;    // 7
+    vector<JointCoord> midHip;    // 8
+    vector<JointCoord> rHip;      // 9
+    vector<JointCoord> rKnee;     // 10
+    vector<JointCoord> rAnkle;    // 11
+    vector<JointCoord> lHip;      // 12
+    vector<JointCoord> lKnee;     // 13
+    vector<JointCoord> lAnkle;    // 14
+    vector<JointCoord> rEye;      // 15
+    vector<JointCoord> lEye;      // 16
+    vector<JointCoord> rEar;      // 17
+    vector<JointCoord> lEar;      // 18
+    vector<JointCoord> lBigToe;   // 19
     vector<JointCoord> lSmallToe; // 20
-    vector<JointCoord> lHeel; // 21
-    vector<JointCoord> rBigToe; // 22
+    vector<JointCoord> lHeel;     // 21
+    vector<JointCoord> rBigToe;   // 22
     vector<JointCoord> rSmallToe; // 23
-    vector<JointCoord> rHeel; // 24
+    vector<JointCoord> rHeel;     // 24
 
-    // Get first frame 
+    // Get first frame
     ss << setw(12) << setfill('0') << curFrame;
     fileName = prefix + ss.str() + suffix;
     inFile.open(fileName, ios::in);
 
     // Continue for each frame
-    while (inFile) {
+    while (inFile)
+    {
         //while (curFrame < 44) {
 
         // Get frame json data
@@ -495,8 +550,10 @@ int main(int argc, char** argv) {
         // Check how many people have been detected
         int peopleNum = 0;
         for (string::iterator it = jsonData.begin(); it != jsonData.end();
-                it++) {
-            if (*it == '{') {
+             it++)
+        {
+            if (*it == '{')
+            {
                 peopleNum++;
             }
         }
@@ -510,9 +567,9 @@ int main(int argc, char** argv) {
 
         // Parse pose data into vectors
         get_frame_pose_data(nose, neck, rShoulder, rElbow, rWrist, lShoulder,
-                lElbow, lWrist, midHip, rHip, rKnee, rAnkle, lHip, lKnee,
-                lAnkle, rEye, lEye, rEar, lEar, lBigToe, lSmallToe, lHeel,
-                rBigToe, rSmallToe, rHeel, jsonData, peopleNum);
+                            lElbow, lWrist, midHip, rHip, rKnee, rAnkle, lHip, lKnee,
+                            lAnkle, rEye, lEye, rEar, lEar, lBigToe, lSmallToe, lHeel,
+                            rBigToe, rSmallToe, rHeel, jsonData, peopleNum);
 
         // Get next frame
         inFile.close();
@@ -529,36 +586,36 @@ int main(int argc, char** argv) {
     //cout << neck.size() << endl;
     //cout << rHeel.size() << endl;
 
-//        for (int i = 0; i < neck.size(); i++) {
-//            cout << neck[i].get_x() << ", " << neck[i].get_y() << endl;
-//        }
+    //        for (int i = 0; i < neck.size(); i++) {
+    //            cout << neck[i].get_x() << ", " << neck[i].get_y() << endl;
+    //        }
 
     // Fill in missing point frames
-    approx_missing_data(nose); // 0
-    approx_missing_data(neck); // 1 
+    approx_missing_data(nose);      // 0
+    approx_missing_data(neck);      // 1
     approx_missing_data(rShoulder); // 2
-    approx_missing_data(rElbow); // 3
-    approx_missing_data(rWrist); // 4
+    approx_missing_data(rElbow);    // 3
+    approx_missing_data(rWrist);    // 4
     approx_missing_data(lShoulder); // 5
-    approx_missing_data(lElbow); // 6
-    approx_missing_data(lWrist); // 7 
-    approx_missing_data(midHip); // 8
-    approx_missing_data(rHip); // 9
-    approx_missing_data(rKnee); // 10
-    approx_missing_data(rAnkle); // 11
-    approx_missing_data(lHip); // 12
-    approx_missing_data(lKnee); // 13
-    approx_missing_data(lAnkle); // 14
-    approx_missing_data(rEye); // 15
-    approx_missing_data(lEye); // 16
-    approx_missing_data(rEar); // 17
-    approx_missing_data(lEar); // 18
-    approx_missing_data(lBigToe); // 19
+    approx_missing_data(lElbow);    // 6
+    approx_missing_data(lWrist);    // 7
+    approx_missing_data(midHip);    // 8
+    approx_missing_data(rHip);      // 9
+    approx_missing_data(rKnee);     // 10
+    approx_missing_data(rAnkle);    // 11
+    approx_missing_data(lHip);      // 12
+    approx_missing_data(lKnee);     // 13
+    approx_missing_data(lAnkle);    // 14
+    approx_missing_data(rEye);      // 15
+    approx_missing_data(lEye);      // 16
+    approx_missing_data(rEar);      // 17
+    approx_missing_data(lEar);      // 18
+    approx_missing_data(lBigToe);   // 19
     approx_missing_data(lSmallToe); // 20
-    approx_missing_data(lHeel); // 21
-    approx_missing_data(rBigToe); // 22
+    approx_missing_data(lHeel);     // 21
+    approx_missing_data(rBigToe);   // 22
     approx_missing_data(rSmallToe); // 23
-    approx_missing_data(rHeel); // 24
+    approx_missing_data(rHeel);     // 24
 
     //    for (int i = 0; i < neck.size(); i++) {
     //        cout << neck[i].get_x() << ", " << neck[i].get_y() << endl;
@@ -621,13 +678,40 @@ int main(int argc, char** argv) {
     // Calculate total COM value
     vector<JointCoord> com;
     com_calc(rLowLeg, lLowLeg, rUpLeg, lUpLeg, torso, rUpArm,
-            lUpArm, rLowArm, lLowArm, rPelvis, head, com);
+             lUpArm, rLowArm, lLowArm, rPelvis, head, com);
 
     cout << com.size() << endl;
 
-    //    for (int i = 0; i < com.size(); i++) {
-    //        cout << com[i].get_x() << ", " << com[i].get_y() << endl;
-    //    }
+    //for (int i = 0; i < com.size(); i++)
+    //{
+    //    cout << com[i].get_x() << ", " << com[i].get_y() << endl;
+    //}
+
+    // Get COM velocity and acceleration
+
+    // Open video for drawing
+    cv::VideoCapture video("/home/james/ece496/openpose/input/120fps.mp4");
+    cv::Mat frame;
+
+    int i = 0;
+    while (video.read(frame))
+    {
+
+        cv::Point2d point;
+        point.x = (double)com[i].get_x();
+        point.y = (double)com[i].get_y();
+
+        cv::circle(frame, point, 5, (0, 0, 255), -1);
+
+        // Display the frame
+        cv::imshow("Video feed", frame);
+
+        // For breaking the loop
+        if (cv::waitKey(25) >= 0)
+            break;
+
+        i++;
+    }
 
     return 0;
 }

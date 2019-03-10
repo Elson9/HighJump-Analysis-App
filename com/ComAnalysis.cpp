@@ -14,7 +14,7 @@
 #define BICEP_DISTAL 0.564
 #define FOREARM_DISTAL 0.682
 
-//COM contribution of each body part
+// COM contribution of each body part
 #define SHIN_COM 0.061
 #define THIGH_COM 0.100
 #define PELVIS_COM 0.142
@@ -23,14 +23,17 @@
 #define FOREARM_COM 0.022
 #define HEAD_COM 0.081
 
+// Frame rate of video file
+#define FRAME_RATE 120.0
+
 using namespace std;
 
 class JointCoord
 {
   private:
-    float x;
-    float y;
-    float c;
+    double x;
+    double y;
+    double c;
 
   public:
     JointCoord()
@@ -40,32 +43,32 @@ class JointCoord
         c = 0;
     }
 
-    void set_x(float X)
+    void set_x(double X)
     {
         x = X;
     }
 
-    void set_y(float Y)
+    void set_y(double Y)
     {
         y = Y;
     }
 
-    void set_c(float C)
+    void set_c(double C)
     {
         c = C;
     }
 
-    float get_x()
+    double get_x()
     {
         return x;
     }
 
-    float get_y()
+    double get_y()
     {
         return y;
     }
 
-    float get_c()
+    double get_c()
     {
         return c;
     }
@@ -76,12 +79,12 @@ class LimbCoord
   private:
     // Low and high positions of joint, ex. rWrist and rElbow respectively for
     // rLowArm
-    float lx;
-    float ly;
-    float hx;
-    float hy;
-    float comx;
-    float comy;
+    double lx;
+    double ly;
+    double hx;
+    double hy;
+    double comx;
+    double comy;
 
   public:
     LimbCoord()
@@ -94,7 +97,7 @@ class LimbCoord
         comy = 0;
     }
 
-    LimbCoord(float LX, float LY, float HX, float HY)
+    LimbCoord(double LX, double LY, double HX, double HY)
     {
         lx = LX;
         ly = LY;
@@ -104,64 +107,146 @@ class LimbCoord
         comy = 0;
     }
 
-    void set_lx(float LX)
+    void set_lx(double LX)
     {
         lx = LX;
     }
 
-    void set_hx(float HX)
+    void set_hx(double HX)
     {
         hx = HX;
     }
 
-    void set_ly(float LY)
+    void set_ly(double LY)
     {
         ly = LY;
     }
 
-    void set_hy(float HY)
+    void set_hy(double HY)
     {
         hy = HY;
     }
 
-    void set_comx(float COMX)
+    void set_comx(double COMX)
     {
         comx = COMX;
     }
 
-    void set_comy(float COMY)
+    void set_comy(double COMY)
     {
         comy = COMY;
     }
 
-    float get_lx()
+    double get_lx()
     {
         return lx;
     }
 
-    float get_hx()
+    double get_hx()
     {
         return hx;
     }
 
-    float get_ly()
+    double get_ly()
     {
         return ly;
     }
 
-    float get_hy()
+    double get_hy()
     {
         return hy;
     }
 
-    float get_comx()
+    double get_comx()
     {
         return comx;
     }
 
-    float get_comy()
+    double get_comy()
     {
         return comy;
+    }
+};
+
+class comData
+{
+  private:
+    double x;
+    double y;
+    double velx;
+    double vely;
+    double accelx;
+    double accely;
+
+  public:
+    comData()
+    {
+        x = 0;
+        y = 0;
+        velx = 0;
+        vely = 0;
+        accelx = 0;
+        accely = 0;
+    }
+
+    void set_x(double X)
+    {
+        x = X;
+    }
+
+    void set_y(double Y)
+    {
+        y = Y;
+    }
+
+    void set_velx(double velX)
+    {
+        velx = velX;
+    }
+
+    void set_vely(double velY)
+    {
+        vely = velY;
+    }
+
+    void set_accelx(double accelX)
+    {
+        accelx = accelX;
+    }
+
+    void set_accely(double accelY)
+    {
+        accely = accelY;
+    }
+
+    double get_x()
+    {
+        return x;
+    }
+
+    double get_y()
+    {
+        return y;
+    }
+
+    double get_velx()
+    {
+        return velx;
+    }
+
+    double get_vely()
+    {
+        return vely;
+    }
+
+    double get_accelx()
+    {
+        return accelx;
+    }
+
+    double get_accely()
+    {
+        return accely;
     }
 };
 
@@ -338,9 +423,9 @@ void approx_missing_data(vector<JointCoord> &joint)
             break;
 
         // Make approximations
-        float difference = joint[i].get_x() - joint[j].get_x();
+        double difference = joint[i].get_x() - joint[j].get_x();
         int numFrames = i - j;
-        float incrementAmt = difference / (float)numFrames;
+        double incrementAmt = difference / (double)numFrames;
         int incrementNum = 1;
         for (int k = j + 1; k < i; k++)
         {
@@ -380,9 +465,9 @@ void approx_missing_data(vector<JointCoord> &joint)
             break;
 
         // Make approximations
-        float difference = joint[i].get_y() - joint[j].get_y();
+        double difference = joint[i].get_y() - joint[j].get_y();
         int numFrames = i - j;
-        float incrementAmt = difference / (float)numFrames;
+        double incrementAmt = difference / (double)numFrames;
         int incrementNum = 1;
         for (int k = j + 1; k < i; k++)
         {
@@ -404,7 +489,7 @@ void joint_creation(vector<JointCoord> &lJoint, vector<JointCoord> &hJoint,
     }
 }
 
-void limb_com(vector<LimbCoord> &curLimb, float distal)
+void limb_com(vector<LimbCoord> &curLimb, double distal)
 {
 
     for (int i = 0; i < curLimb.size(); i++)
@@ -448,12 +533,12 @@ void com_calc(
     vector<LimbCoord> &lLowArm,
     vector<LimbCoord> &rPelvis,
     vector<LimbCoord> &head,
-    vector<JointCoord> &com)
+    vector<comData> &com)
 {
 
     for (int i = 0; i < head.size(); i++)
     {
-        JointCoord curCOM;
+        comData curCOM;
         curCOM.set_x(rLowLeg[i].get_comx() * SHIN_COM +
                      lLowLeg[i].get_comx() * SHIN_COM +
                      rUpLeg[i].get_comx() * THIGH_COM +
@@ -480,15 +565,37 @@ void com_calc(
     }
 }
 
+void com_vel(vector<comData> &com)
+{
+    for (int i = 75; i < com.size(); i = i + 7)
+    {
+        double distx = com[i].get_x() - com[i - 7].get_x();
+        double disty = com[i].get_y() - com[i - 7].get_y();
+        com[i].set_velx(distx / (1000.0 / (double)FRAME_RATE));
+        com[i].set_vely(disty / (1000.0 / (double)FRAME_RATE));
+    }
+}
+
+void com_accel(vector<comData> &com)
+{
+    for (int i = 75; i < com.size(); i = i + 7)
+    {
+        double deltax = com[i].get_velx() - com[i - 7].get_velx();
+        double deltay = com[i].get_vely() - com[i - 7].get_vely();
+        com[i].set_accelx(deltax / (3.0 / (double)FRAME_RATE));
+        com[i].set_accely(deltay / (3.0 / (double)FRAME_RATE));
+    }
+}
+
 /*
  * To-do:
  * 
- * test COM calculation
- * only do COM calculation when all joint COM values are recorded properly
- * create COMdata class for including velocity and accel data
  * 
- * detect the right person if more than one person detected
  * COM velocity and acceleration
+ * drawing of everything
+ * only do COM calculation when all joint COM values are recorded properly
+ * Take off angle
+ * detect the right person if more than one person detected
  */
 int main(int argc, char **argv)
 {
@@ -676,32 +783,65 @@ int main(int argc, char **argv)
     //        }
 
     // Calculate total COM value
-    vector<JointCoord> com;
+    vector<comData> com;
     com_calc(rLowLeg, lLowLeg, rUpLeg, lUpLeg, torso, rUpArm,
              lUpArm, rLowArm, lLowArm, rPelvis, head, com);
 
     cout << com.size() << endl;
 
-    //for (int i = 0; i < com.size(); i++)
-    //{
-    //    cout << com[i].get_x() << ", " << com[i].get_y() << endl;
-    //}
-
     // Get COM velocity and acceleration
+    com_vel(com);
+    com_accel(com);
+
+    double maxX = 0;
+    double maxY = 0;
+
+    for (int i = 0; i < com.size(); i++)
+    {
+        cout << com[i].get_accelx() << ", " << com[i].get_accely() << endl;
+        if (com[i].get_accelx() > maxX)
+        {
+            maxX = com[i].get_accelx();
+        }
+        if (com[i].get_accely() > maxY)
+        {
+            maxY = com[i].get_accely();
+        }
+    }
+
+    cout << "MAX X: " << maxX << endl;
+    cout << "MAX Y: " << maxY << endl;
 
     // Open video for drawing
     cv::VideoCapture video("/home/james/ece496/openpose/input/120fps.mp4");
     cv::Mat frame;
+
+    vector<cv::Point2d> pointarray;
+    vector<cv::Point2d> pointarray2;
 
     int i = 0;
     while (video.read(frame))
     {
 
         cv::Point2d point;
+        cv::Point2d point2;
+
         point.x = (double)com[i].get_x();
         point.y = (double)com[i].get_y();
 
+        point2.x = point.x + (double)com[i].get_accelx();
+        point2.y = point.y + (double)com[i].get_accely();
+
+        pointarray.push_back(point);
+        pointarray2.push_back(point2);
+
         cv::circle(frame, point, 5, (0, 0, 255), -1);
+        //cv::line(frame, point, point2, 5, (0, 0, 255), -1);
+        for(int i = 75; i < pointarray.size(); i = i + 7) {
+            cv::line(frame, pointarray[i], pointarray2[i], (0, 0, 255), 2, 8, 0);
+        }
+
+        //cv::line(frame, point, point2, (0, 0, 255), 3, 8, 0);
 
         // Display the frame
         cv::imshow("Video feed", frame);

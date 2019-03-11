@@ -1,6 +1,0 @@
-<resources>
-    <string name="app_name">High Jump Analysis</string>
-    <string name="capture_button">Capture Video</string>
-    <string name="athlete_button">Athlete Database</string>
-    <string name="title">High Jump Analysis</string>
-</resources>

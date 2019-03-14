@@ -26,6 +26,10 @@
 // Frame rate of video file
 #define FRAME_RATE 120.0
 
+// Frame jump for acceleration smoothing
+#define VEL_JUMP 3
+#define FRAME_JUMP 6
+
 using namespace std;
 
 class JointCoord
@@ -177,6 +181,8 @@ class comData
     double vely;
     double accelx;
     double accely;
+    // If COM Calc used every joint
+    bool complete;
 
   public:
     comData()
@@ -219,6 +225,11 @@ class comData
         accely = accelY;
     }
 
+    void set_comp(bool isComp)
+    {
+        complete = isComp;
+    }
+
     double get_x()
     {
         return x;
@@ -247,6 +258,11 @@ class comData
     double get_accely()
     {
         return accely;
+    }
+
+    bool get_comp()
+    {
+        return complete;
     }
 };
 
@@ -561,29 +577,47 @@ void com_calc(
                      rLowArm[i].get_comy() * FOREARM_COM +
                      lLowArm[i].get_comy() * FOREARM_COM +
                      head[i].get_comy() * HEAD_COM);
+        if (rLowLeg[i].get_comx() == 0 ||
+            lLowLeg[i].get_comx() == 0 ||
+            rUpLeg[i].get_comx() == 0 ||
+            lUpLeg[i].get_comx() == 0 ||
+            rPelvis[i].get_comx() == 0 ||
+            torso[i].get_comx() == 0 ||
+            rUpArm[i].get_comx() == 0 ||
+            lUpArm[i].get_comx() == 0 ||
+            rLowArm[i].get_comx() == 0 ||
+            lLowArm[i].get_comx() == 0 ||
+            head[i].get_comx() == 0)
+        {
+            curCOM.set_comp(false);
+        }
+        else
+        {
+            curCOM.set_comp(true);
+        }
         com.push_back(curCOM);
     }
 }
 
 void com_vel(vector<comData> &com)
 {
-    for (int i = 75; i < com.size(); i = i + 7)
+    for (int i = VEL_JUMP; i < com.size(); i++)
     {
-        double distx = com[i].get_x() - com[i - 7].get_x();
-        double disty = com[i].get_y() - com[i - 7].get_y();
-        com[i].set_velx(distx / (1000.0 / (double)FRAME_RATE));
-        com[i].set_vely(disty / (1000.0 / (double)FRAME_RATE));
+        double distx = com[i].get_x() - com[i - VEL_JUMP].get_x();
+        double disty = com[i].get_y() - com[i - VEL_JUMP].get_y();
+        com[i].set_velx(distx / (100.0 / (double)FRAME_RATE));
+        com[i].set_vely(disty / (100.0 / (double)FRAME_RATE));
     }
 }
 
 void com_accel(vector<comData> &com)
 {
-    for (int i = 75; i < com.size(); i = i + 7)
+    for (int i = FRAME_JUMP; i < com.size(); i = i + FRAME_JUMP)
     {
-        double deltax = com[i].get_velx() - com[i - 7].get_velx();
-        double deltay = com[i].get_vely() - com[i - 7].get_vely();
-        com[i].set_accelx(deltax / (3.0 / (double)FRAME_RATE));
-        com[i].set_accely(deltay / (3.0 / (double)FRAME_RATE));
+        double deltax = com[i].get_velx() - com[i - FRAME_JUMP].get_velx();
+        double deltay = com[i].get_vely() - com[i - FRAME_JUMP].get_vely();
+        com[i].set_accelx(deltax / (50.0 / (double)FRAME_RATE));
+        com[i].set_accely(deltay / (50.0 / (double)FRAME_RATE));
     }
 }
 
@@ -593,9 +627,12 @@ void com_accel(vector<comData> &com)
  * 
  * COM velocity and acceleration
  * drawing of everything
- * only do COM calculation when all joint COM values are recorded properly
- * Take off angle
- * detect the right person if more than one person detected
+ * 
+ * only do COM calculation when all joint COM values are recorded properly (in progress)
+ * detect when to finish drawing
+ * Take off angle (detect take off point)
+ * athlete's velocity
+ * draw arrows for aceleration
  */
 int main(int argc, char **argv)
 {
@@ -796,6 +833,7 @@ int main(int argc, char **argv)
     double maxX = 0;
     double maxY = 0;
 
+    // PRINT VELOCITY VALUES FOR DEBUGGING
     for (int i = 0; i < com.size(); i++)
     {
         cout << com[i].get_accelx() << ", " << com[i].get_accely() << endl;
@@ -816,8 +854,12 @@ int main(int argc, char **argv)
     cv::VideoCapture video("/home/james/ece496/openpose/input/120fps.mp4");
     cv::Mat frame;
 
+    // Point arrays for persistant drawing
     vector<cv::Point2d> pointarray;
     vector<cv::Point2d> pointarray2;
+
+    //Checks when to begin COM drawing
+    bool begin = false;
 
     int i = 0;
     while (video.read(frame))
@@ -835,12 +877,30 @@ int main(int argc, char **argv)
         pointarray.push_back(point);
         pointarray2.push_back(point2);
 
-        cv::circle(frame, point, 5, (0, 0, 255), -1);
-        //cv::line(frame, point, point2, 5, (0, 0, 255), -1);
-        for(int i = 75; i < pointarray.size(); i = i + 7) {
-            cv::line(frame, pointarray[i], pointarray2[i], (0, 0, 255), 2, 8, 0);
+        //Check if begin
+        if (com[i].get_velx() < -15 &&
+            com[i + 1].get_velx() < -15 &&
+            com[i + 2].get_velx() < -15 &&
+            com[i].get_velx() > -75 &&
+            com[i + 1].get_velx() > -75 &&
+            com[i + 2].get_velx() > -75 &&
+            begin == false)
+        {
+            begin = true;
         }
-
+        if (begin && com[i].get_comp() == true)
+        {
+            // Draw COM point
+            if (com[i].get_comp() == true)
+            {
+                cv::circle(frame, point, 5, (0, 0, 255), -1);
+            }
+            //cv::line(frame, point, point2, 5, (0, 0, 255), -1);
+            for (int i = FRAME_JUMP; i < pointarray.size(); i = i + FRAME_JUMP)
+            {
+                cv::line(frame, pointarray[i], pointarray2[i], (0, 0, 255), 2, 8, 0);
+            }
+        }
         //cv::line(frame, point, point2, (0, 0, 255), 3, 8, 0);
 
         // Display the frame

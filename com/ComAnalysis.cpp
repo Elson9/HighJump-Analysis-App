@@ -25,7 +25,7 @@
 #define HEAD_COM 0.081
 
 // Frame rate of video file
-#define FRAME_RATE 120.0
+#define FRAME_RATE 60.0
 
 // Frame jump for acceleration smoothing
 #define VEL_JUMP 10
@@ -681,8 +681,8 @@ void com_vel(vector<comData> &com)
     {
         double distx = com[i].get_x() - com[i - VEL_JUMP].get_x();
         double disty = com[i].get_y() - com[i - VEL_JUMP].get_y();
-        com[i].set_velx(distx / (100.0 / (double)FRAME_RATE));
-        com[i].set_vely(disty / (100.0 / (double)FRAME_RATE));
+        com[i].set_velx(distx / (50.0 / (double)FRAME_RATE));
+        com[i].set_vely(disty / (50.0 / (double)FRAME_RATE));
     }
 }
 
@@ -699,8 +699,8 @@ void com_accel(vector<comData> &com)
     {
         double deltax = com[i].get_velx() - com[i - FRAME_JUMP].get_velx();
         double deltay = com[i].get_vely() - com[i - FRAME_JUMP].get_vely();
-        com[i].set_accelx(deltax / (50.0 / (double)FRAME_RATE));
-        com[i].set_accely(deltay / (50.0 / (double)FRAME_RATE));
+        com[i].set_accelx(deltax / (25.0 / (double)FRAME_RATE));
+        com[i].set_accely(deltay / (25.0 / (double)FRAME_RATE));
     }
 }
 
@@ -954,16 +954,16 @@ int main(int argc, char **argv)
 
     //Checks when to begin COM drawing
     bool begin = false;
+    int frameBegin;
+
+    // Checks if take off point has been detected
+    bool takeOff = false;
+    int takeOffFrame;
 
     int i = 0;
-    int frameBegin;
     while (video.read(frame))
     {
 
-        if (i == 20)
-        {
-            cv::imwrite("david.jpg", frame);
-        }
         cv::Point2d point;
         cv::Point2d point2;
 
@@ -988,7 +988,24 @@ int main(int argc, char **argv)
             begin = true;
             // Sets frame to begin drawing from point array, and aligns to frame jump
             frameBegin = i - (i % FRAME_JUMP);
+            cout << "FRAMEBEGIN " << frameBegin << endl;
         }
+
+        // Detects take off point
+        if (com[i].get_accelx() > 0 &&
+            com[i + FRAME_JUMP].get_accelx() > 0 &&
+            //com[i + 2 * FRAME_JUMP].get_accelx() > 0 &&
+            com[i].get_accely() < -30 &&
+            com[i + FRAME_JUMP].get_accely() < -30 &&
+            //com[i + 2 * FRAME_JUMP].get_accely() < -30 &&
+
+            takeOff == false)
+        {
+            takeOff = true;
+            takeOffFrame = i - (i % FRAME_JUMP);
+            cout << "takeoff " << takeOffFrame << endl;
+        }
+
         if (begin && com[i].get_comp() == true)
         {
             // Draw COM point

@@ -5,6 +5,7 @@
 #include <vector>
 #include <sstream>
 #include <iomanip>
+#include <math.h>
 #include <opencv2/opencv.hpp>
 
 // COM location for each limb
@@ -27,8 +28,8 @@
 #define FRAME_RATE 120.0
 
 // Frame jump for acceleration smoothing
-#define VEL_JUMP 3
-#define FRAME_JUMP 6
+#define VEL_JUMP 10
+#define FRAME_JUMP 5
 
 using namespace std;
 
@@ -181,6 +182,8 @@ class comData
     double vely;
     double accelx;
     double accely;
+    double filtered_x;
+    double filtered_y;
     // If COM Calc used every joint
     bool complete;
 
@@ -193,6 +196,8 @@ class comData
         vely = 0;
         accelx = 0;
         accely = 0;
+        filtered_x = 0;
+        filtered_y = 0;
     }
 
     void set_x(double X)
@@ -203,6 +208,16 @@ class comData
     void set_y(double Y)
     {
         y = Y;
+    }
+
+    void set_filtered_x(double X)
+    {
+        filtered_x = X;
+    }
+
+    void set_filtered_y(double Y)
+    {
+        filtered_y = Y;
     }
 
     void set_velx(double velX)
@@ -599,6 +614,60 @@ void com_calc(
     }
 }
 
+void moving_average_filtered_com(vector<comData> &com)
+{
+    double avrg_arr[5] = {0,0,0,0,0};
+    for (int i = 0; i < (com.size() - 5); i++)
+    {
+        avrg_arr[0] = com[i].get_y();
+        avrg_arr[1] = com[i+1].get_y();
+        avrg_arr[2] = com[i+2].get_y();
+        avrg_arr[3] = com[i+3].get_y();
+        avrg_arr[4] = com[i+4].get_y();
+        int sum = 0;
+        for(int j = 0; j < 5; j++){
+            sum += avrg_arr[j];
+        }
+        double avrg = sum/5;
+        com[i].set_x(com[i].get_x());
+        com[i].set_y((double) avrg);
+        /*double distx = com[i].get_x() - com[i - VEL_JUMP].get_x();
+        double disty = com[i].get_y() - com[i - VEL_JUMP].get_y();*/
+        //com[i].set_velx(distx / (100.0 / (double)FRAME_RATE));
+        //com[i].set_vely(disty / (100.0 / (double)FRAME_RATE));
+    }
+}
+
+void com_lpf(vector<comData> &com)
+{
+    for (int i = 0; i < com.size(); i++)
+    {
+        double current = com[i].get_y();
+        double prev = com[i-1].get_y();
+        if(i > 0 && (current > (prev + 100.0))){
+            com[i].set_y(((com[i + 10].get_y() + com[i - 1].get_y())/2));
+        }
+        if(i > 0 && (com[i].get_x() > (com[i].get_x() + 100.0))){
+            com[i].set_x(((com[i + 3].get_x() + com[i - 1].get_x())/2));
+        }
+        /*double distx = com[i].get_x() - com[i - VEL_JUMP].get_x();
+        double disty = com[i].get_y() - com[i - VEL_JUMP].get_y();*/
+        //com[i].set_velx(distx / (100.0 / (double)FRAME_RATE));
+        //com[i].set_vely(disty / (100.0 / (double)FRAME_RATE));
+    }
+}
+
+void stablize_first_frames(vector<comData> &com, int frames)
+{
+    double stable_x = com[frames].get_x();
+    double stable_y = com[frames].get_y();
+    for (int i = 0; i < frames; i++)
+    {
+        com[i].set_x(stable_x);
+        com[i].set_y(stable_y);
+    }
+}
+
 void com_vel(vector<comData> &com)
 {
     for (int i = VEL_JUMP; i < com.size(); i++)
@@ -612,6 +681,13 @@ void com_vel(vector<comData> &com)
 
 void com_accel(vector<comData> &com)
 {
+    /*for (int i = FRAME_JUMP; i < com.size(); i = i + FRAME_JUMP)
+    {
+        double deltax = com[i].get_velx() - com[i - FRAME_JUMP].get_velx();
+        double deltay = com[i].get_vely() - com[i - FRAME_JUMP].get_vely();
+        com[i].set_accelx(deltax / (50.0 / (double)FRAME_RATE));
+        com[i].set_accely(deltay / (50.0 / (double)FRAME_RATE));
+    }*/
     for (int i = FRAME_JUMP; i < com.size(); i = i + FRAME_JUMP)
     {
         double deltax = com[i].get_velx() - com[i - FRAME_JUMP].get_velx();
@@ -638,7 +714,7 @@ int main(int argc, char **argv)
 {
 
     // Set up strings for dynamic file retrieval
-    const string prefix = "/home/james/ece496/openpose/output/120fps_";
+    const string prefix = "/Users/DavidChen/Desktop/output/120fps_";
     const string suffix = "_keypoints.json";
     stringstream ss;
     string fileName;
@@ -826,17 +902,24 @@ int main(int argc, char **argv)
 
     cout << com.size() << endl;
 
+    //stablize_first_frames(com, 75);
+
+    //using moving average filter to smooth data
+    moving_average_filtered_com(com);
+    //com low pass filter for erroneous y values
+    //com_lpf(com);
     // Get COM velocity and acceleration
     com_vel(com);
     com_accel(com);
-
     double maxX = 0;
     double maxY = 0;
 
     // PRINT VELOCITY VALUES FOR DEBUGGING
     for (int i = 0; i < com.size(); i++)
     {
-        cout << com[i].get_accelx() << ", " << com[i].get_accely() << endl;
+        //cout << com[i].get_accelx() << ", " << com[i].get_accely() << endl;
+        cout << com[i].get_x() << ", " << com[i].get_y() << endl;
+
         if (com[i].get_accelx() > maxX)
         {
             maxX = com[i].get_accelx();
@@ -851,7 +934,7 @@ int main(int argc, char **argv)
     cout << "MAX Y: " << maxY << endl;
 
     // Open video for drawing
-    cv::VideoCapture video("/home/james/ece496/openpose/input/120fps.mp4");
+    cv::VideoCapture video("/Users/DavidChen/Desktop/output/result.avi");
     cv::Mat frame;
 
     // Point arrays for persistant drawing
@@ -897,8 +980,12 @@ int main(int argc, char **argv)
             }
             //cv::line(frame, point, point2, 5, (0, 0, 255), -1);
             for (int i = FRAME_JUMP; i < pointarray.size(); i = i + FRAME_JUMP)
+            //for (int i = 0; i < pointarray.size(); i++)
             {
-                cv::line(frame, pointarray[i], pointarray2[i], (0, 0, 255), 2, 8, 0);
+                //low pass filtering the acceleration data
+                if(sqrt(pow((pointarray2[i].x - pointarray[i].x), 2) + pow((pointarray2[i].y - pointarray[i].y), 2)) < 100){
+                    cv::arrowedLine(frame, pointarray[i], pointarray2[i], (0, 0, 255), 2, 8, 0);
+                }
             }
         }
         //cv::line(frame, point, point2, (0, 0, 255), 3, 8, 0);

@@ -29,7 +29,11 @@
 
 // Frame jump for acceleration smoothing
 #define VEL_JUMP 10
-#define FRAME_JUMP 5
+#define FRAME_JUMP 3
+
+// Speed ranges for detecting athlete
+#define SPEED_LOW -75
+#define SPEED_HIGH -125
 
 using namespace std;
 
@@ -616,21 +620,22 @@ void com_calc(
 
 void moving_average_filtered_com(vector<comData> &com)
 {
-    double avrg_arr[5] = {0,0,0,0,0};
+    double avrg_arr[5] = {0, 0, 0, 0, 0};
     for (int i = 0; i < (com.size() - 5); i++)
     {
         avrg_arr[0] = com[i].get_y();
-        avrg_arr[1] = com[i+1].get_y();
-        avrg_arr[2] = com[i+2].get_y();
-        avrg_arr[3] = com[i+3].get_y();
-        avrg_arr[4] = com[i+4].get_y();
+        avrg_arr[1] = com[i + 1].get_y();
+        avrg_arr[2] = com[i + 2].get_y();
+        avrg_arr[3] = com[i + 3].get_y();
+        avrg_arr[4] = com[i + 4].get_y();
         int sum = 0;
-        for(int j = 0; j < 5; j++){
+        for (int j = 0; j < 5; j++)
+        {
             sum += avrg_arr[j];
         }
-        double avrg = sum/5;
+        double avrg = sum / 5;
         com[i].set_x(com[i].get_x());
-        com[i].set_y((double) avrg);
+        com[i].set_y((double)avrg);
         /*double distx = com[i].get_x() - com[i - VEL_JUMP].get_x();
         double disty = com[i].get_y() - com[i - VEL_JUMP].get_y();*/
         //com[i].set_velx(distx / (100.0 / (double)FRAME_RATE));
@@ -643,12 +648,14 @@ void com_lpf(vector<comData> &com)
     for (int i = 0; i < com.size(); i++)
     {
         double current = com[i].get_y();
-        double prev = com[i-1].get_y();
-        if(i > 0 && (current > (prev + 100.0))){
-            com[i].set_y(((com[i + 10].get_y() + com[i - 1].get_y())/2));
+        double prev = com[i - 1].get_y();
+        if (i > 0 && (current > (prev + 100.0)))
+        {
+            com[i].set_y(((com[i + 10].get_y() + com[i - 1].get_y()) / 2));
         }
-        if(i > 0 && (com[i].get_x() > (com[i].get_x() + 100.0))){
-            com[i].set_x(((com[i + 3].get_x() + com[i - 1].get_x())/2));
+        if (i > 0 && (com[i].get_x() > (com[i].get_x() + 100.0)))
+        {
+            com[i].set_x(((com[i + 3].get_x() + com[i - 1].get_x()) / 2));
         }
         /*double distx = com[i].get_x() - com[i - VEL_JUMP].get_x();
         double disty = com[i].get_y() - com[i - VEL_JUMP].get_y();*/
@@ -704,17 +711,20 @@ void com_accel(vector<comData> &com)
  * COM velocity and acceleration
  * drawing of everything
  * 
- * only do COM calculation when all joint COM values are recorded properly (in progress)
- * detect when to finish drawing
  * Take off angle (detect take off point)
+ * detect when to finish drawing
+ * draw skeleton
  * athlete's velocity
+ * only do COM calculation when all joint COM values are recorded properly (in progress)
  * draw arrows for aceleration
+ * pause video for a second at take off
  */
 int main(int argc, char **argv)
 {
 
     // Set up strings for dynamic file retrieval
-    const string prefix = "/Users/DavidChen/Desktop/output/120fps_";
+    //const string prefix = "/Users/DavidChen/Desktop/output/120fps_";
+    const string prefix = "/home/james/ece496/openpose/output/120fps_";
     const string suffix = "_keypoints.json";
     stringstream ss;
     string fileName;
@@ -917,8 +927,9 @@ int main(int argc, char **argv)
     // PRINT VELOCITY VALUES FOR DEBUGGING
     for (int i = 0; i < com.size(); i++)
     {
-        //cout << com[i].get_accelx() << ", " << com[i].get_accely() << endl;
-        cout << com[i].get_x() << ", " << com[i].get_y() << endl;
+        //cout << com[i].get_x() << ", " << com[i].get_y() << endl;
+        //cout << com[i].get_velx() << ", " << com[i].get_vely() << endl;
+        cout << com[i].get_accelx() << ", " << com[i].get_accely() << endl;
 
         if (com[i].get_accelx() > maxX)
         {
@@ -934,9 +945,9 @@ int main(int argc, char **argv)
     cout << "MAX Y: " << maxY << endl;
 
     // Open video for drawing
-    cv::VideoCapture video("/Users/DavidChen/Desktop/output/result.avi");
+    //cv::VideoCapture video("/Users/DavidChen/Desktop/output/result.avi");
+    cv::VideoCapture video("/home/james/ece496/openpose/input/120fps.mp4");
     cv::Mat frame;
-
     // Point arrays for persistant drawing
     vector<cv::Point2d> pointarray;
     vector<cv::Point2d> pointarray2;
@@ -945,9 +956,14 @@ int main(int argc, char **argv)
     bool begin = false;
 
     int i = 0;
+    int frameBegin;
     while (video.read(frame))
     {
 
+        if (i == 20)
+        {
+            cv::imwrite("david.jpg", frame);
+        }
         cv::Point2d point;
         cv::Point2d point2;
 
@@ -960,16 +976,18 @@ int main(int argc, char **argv)
         pointarray.push_back(point);
         pointarray2.push_back(point2);
 
-        //Check if begin
-        if (com[i].get_velx() < -15 &&
-            com[i + 1].get_velx() < -15 &&
-            com[i + 2].get_velx() < -15 &&
-            com[i].get_velx() > -75 &&
-            com[i + 1].get_velx() > -75 &&
-            com[i + 2].get_velx() > -75 &&
+        // Detecs when athlete enters the frame
+        if (com[i].get_velx() < SPEED_LOW &&
+            com[i - 1].get_velx() < SPEED_LOW &&
+            com[i - 2].get_velx() < SPEED_LOW &&
+            com[i].get_velx() > SPEED_HIGH &&
+            com[i - 1].get_velx() > SPEED_HIGH &&
+            com[i - 2].get_velx() > SPEED_HIGH &&
             begin == false)
         {
             begin = true;
+            // Sets frame to begin drawing from point array, and aligns to frame jump
+            frameBegin = i - (i % FRAME_JUMP);
         }
         if (begin && com[i].get_comp() == true)
         {
@@ -979,12 +997,13 @@ int main(int argc, char **argv)
                 cv::circle(frame, point, 5, (0, 0, 255), -1);
             }
             //cv::line(frame, point, point2, 5, (0, 0, 255), -1);
-            for (int i = FRAME_JUMP; i < pointarray.size(); i = i + FRAME_JUMP)
+            for (int i = frameBegin; i < pointarray.size(); i = i + FRAME_JUMP)
             //for (int i = 0; i < pointarray.size(); i++)
             {
                 //low pass filtering the acceleration data
-                if(sqrt(pow((pointarray2[i].x - pointarray[i].x), 2) + pow((pointarray2[i].y - pointarray[i].y), 2)) < 100){
-                    cv::arrowedLine(frame, pointarray[i], pointarray2[i], (0, 0, 255), 2, 8, 0);
+                if (sqrt(pow((pointarray2[i].x - pointarray[i].x), 2) + pow((pointarray2[i].y - pointarray[i].y), 2)) < 100)
+                {
+                    cv::line(frame, pointarray[i], pointarray2[i], (0, 0, 255), 2, 8, 0);
                 }
             }
         }

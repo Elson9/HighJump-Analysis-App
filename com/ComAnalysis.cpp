@@ -35,7 +35,7 @@
 #define SPEED_LOW -75
 #define SPEED_HIGH -125
 
-#define VELOCITY_DELAY 5
+#define VELOCITY_DELAY 15
 
 using namespace std;
 
@@ -694,8 +694,8 @@ int main(int argc, char **argv)
 {
 
     // Set up strings for dynamic file retrieval
-    //const string prefix = "/Users/DavidChen/Desktop/output/120fps_";
-    const string prefix = "/home/james/ece496/openpose/output/120fps_";
+    const string prefix = "/Users/DavidChen/Desktop/output/120fps_";
+    //const string prefix = "/home/james/ece496/openpose/output/120fps_";
     const string suffix = "_keypoints.json";
     stringstream ss;
     string fileName;
@@ -964,9 +964,9 @@ int main(int argc, char **argv)
 
     // Find com height percentage at take off
     double comHeight = lLowLeg[takeOffFrame].get_ly() - com[takeOffFrame].get_y();
-    double percentage = comHeight / totalHeight;
+    double com_height_percentage = comHeight / totalHeight;
     cout << "COMHEIGHT: " << comHeight << endl;
-    cout << "PERCENTAGE: " << percentage << endl;
+    cout << "PERCENTAGE: " << com_height_percentage << endl;
 
     // PRINT VELOCITY VALUES FOR DEBUGGING
     for (int i = 0; i < com.size(); i++)
@@ -989,8 +989,8 @@ int main(int argc, char **argv)
     cout << "MAX Y: " << maxY << endl;
 
     // Open video for drawing
-    //cv::VideoCapture video("/Users/DavidChen/Desktop/output/result.avi");
-    cv::VideoCapture video("/home/james/ece496/openpose/input/120fps.mp4");
+    cv::VideoCapture video("/Users/DavidChen/Desktop/output/result.avi");
+    //cv::VideoCapture video("/home/james/ece496/openpose/input/120fps.mp4");
     cv::Mat frame;
     // Point arrays for persistant drawing
     vector<cv::Point2d> pointarray;
@@ -998,6 +998,8 @@ int main(int argc, char **argv)
 
     cv::Mat CurrentMat_RGB;
     cv::cvtColor(frame, CurrentMat_RGB, CV_GRAY2RGB);
+    double velTot = 0;
+    int velCtr = 0;
     int i = 0;
     while (video.read(frame))
     {
@@ -1238,27 +1240,57 @@ int main(int argc, char **argv)
                 cv::Point2d degPt;
                 degPt.x = 50;
                 degPt.y = 90;
-                string rounded_deg = "";
-                rounded_deg = to_string(roundf(takeoff_angle * -100) / 100);
+                //string rounded_deg = "";
+                //rounded_deg = to_string(roundf(takeoff_angle * -100) / 100);
+
+                double val = roundf(takeoff_angle * -100) / 100;
+                stringstream deg_stream;
+                deg_stream << fixed << setprecision(3) << val;
+                string rounded_deg = deg_stream.str();
                 cv::putText(frame, rounded_deg + " Degrees", degPt, CV_FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 255), 2);
+                
+                //Display COM height percentage
+                degPt.x = 50;
+                degPt.y = 130;
+                val = roundf(com_height_percentage * 100);
+                stringstream perc_stream;
+                perc_stream << fixed << setprecision(3) << val;
+                string rounded_perc = perc_stream.str();
+                cv::putText(frame, rounded_perc + " COM Height Percentage", degPt, CV_FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 255, 0), 2);
             }
 
             //Draw athlete COM velocity every third frame
             double instant_vel;
-            if (i % VELOCITY_DELAY == 0)
+            if ((i % VELOCITY_DELAY == 0) && i < takeOffFrame)
             {
-                instant_vel = (sqrt(pow((com[i + 1].get_x() - com[i].get_x()), 2)) * 0.6);
+                double velStor = 0;
+                for(int ct = 0; ct < VELOCITY_DELAY; ct++){
+                    velStor += (sqrt(pow((com[i + ct + 1].get_x() - com[i + ct].get_x()), 2)) * 0.6);
+                }
+                instant_vel = velStor/VELOCITY_DELAY;
+                velTot += instant_vel;
+                velCtr++;
             }
-            cout.precision(10);
+            if((i % VELOCITY_DELAY == 0) && i >= takeOffFrame){
+                instant_vel = velTot/velCtr;
+            }
+            cout.precision(4);
             cout << fixed << instant_vel << endl;
             cv::Point2d velPt;
             velPt.x = 50;
             velPt.y = 50;
-            string rounded = "";
-            rounded = to_string(roundf(instant_vel * 100) / 100);
-            if (i <= frameEnd)
-            {
+
+            //string rounded = "";
+            //rounded = to_string(roundf(instant_vel * 100) / 100);
+            double val = roundf(instant_vel * 100) / 100;
+            stringstream stream;
+            stream << fixed << setprecision(3) << val;
+            string rounded = stream.str();
+            if(i <= frameEnd){
                 cv::putText(frame, rounded + "m/s", velPt, CV_FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
+            }
+            if(i > frameEnd){
+                cv::putText(frame, "Average Vel "+ rounded + "m/s", velPt, CV_FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
             }
             // Draw COM point
             if (i < frameEnd)

@@ -1238,8 +1238,8 @@ int main(int argc, char **argv)
                 cv::line(frame, skeleton_pt_l, skeleton_pt_h, cv::Scalar(0, 255, 255), 2, 8, 0);
                 double takeoff_angle = atan(y_diff / x_diff) * (180 / 3.14159265);
                 cv::Point2d degPt;
-                degPt.x = 50;
-                degPt.y = 90;
+                degPt.x = 250;
+                degPt.y = 50;
                 //string rounded_deg = "";
                 //rounded_deg = to_string(roundf(takeoff_angle * -100) / 100);
 
@@ -1247,16 +1247,16 @@ int main(int argc, char **argv)
                 stringstream deg_stream;
                 deg_stream << fixed << setprecision(3) << val;
                 string rounded_deg = deg_stream.str();
-                cv::putText(frame, rounded_deg + " Degrees", degPt, CV_FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 255), 2);
+                cv::putText(frame, rounded_deg + " Degrees", degPt, CV_FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 255), 1);
                 
                 //Display COM height percentage
-                degPt.x = 50;
-                degPt.y = 130;
+                degPt.x = 400;
+                degPt.y = 50;
                 val = roundf(com_height_percentage * 100);
                 stringstream perc_stream;
                 perc_stream << fixed << setprecision(3) << val;
                 string rounded_perc = perc_stream.str();
-                cv::putText(frame, rounded_perc + " COM Height Percentage", degPt, CV_FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 255, 0), 2);
+                cv::putText(frame, rounded_perc + " COM Height Percentage", degPt, CV_FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 0), 1);
             }
 
             //Draw athlete COM velocity every third frame
@@ -1287,10 +1287,10 @@ int main(int argc, char **argv)
             stream << fixed << setprecision(3) << val;
             string rounded = stream.str();
             if(i <= frameEnd){
-                cv::putText(frame, rounded + "m/s", velPt, CV_FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
+                cv::putText(frame, rounded + "m/s", velPt, CV_FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
             }
             if(i > frameEnd){
-                cv::putText(frame, "Average Vel "+ rounded + "m/s", velPt, CV_FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
+                cv::putText(frame, "Average Vel "+ rounded + "m/s", velPt, CV_FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
             }
             // Draw COM point
             if (i < frameEnd)

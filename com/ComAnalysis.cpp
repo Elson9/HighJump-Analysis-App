@@ -683,7 +683,6 @@ void com_accel(vector<comData> &com)
  * COM velocity and acceleration
  * drawing of everything
  * 
- * tweak take off point
  * com height percentage
  * 
  * Take off angle (detect take off point)
@@ -906,15 +905,11 @@ int main(int argc, char **argv)
     {
         // Detecs when athlete enters the frame
         if (com[i].get_velx() < SPEED_LOW &&
-            com[i + 1].get_velx() < SPEED_LOW &&
-            com[i + 2].get_velx() < SPEED_LOW &&
-            com[i + 3].get_velx() < SPEED_LOW &&
-            com[i + 4].get_velx() < SPEED_LOW &&
+            com[i - 1].get_velx() < SPEED_LOW &&
+            com[i - 2].get_velx() < SPEED_LOW &&
             com[i].get_velx() > SPEED_HIGH &&
-            com[i + 1].get_velx() > SPEED_HIGH &&
-            com[i + 2].get_velx() > SPEED_HIGH &&
-            com[i + 3].get_velx() > SPEED_HIGH &&
-            com[i + 4].get_velx() > SPEED_HIGH &&
+            com[i - 1].get_velx() > SPEED_HIGH &&
+            com[i - 2].get_velx() > SPEED_HIGH &&
             begin == false)
         {
             begin = true;
@@ -926,10 +921,10 @@ int main(int argc, char **argv)
         // Detects take off point
         if (com[i].get_accelx() > 0 &&
             com[i + FRAME_JUMP].get_accelx() > 0 &&
-            //com[i + 2 * FRAME_JUMP].get_accelx() > 0 &&
+            com[i + 2 * FRAME_JUMP].get_accelx() > 0 &&
             com[i].get_accely() < -30 &&
             com[i + FRAME_JUMP].get_accely() < -30 &&
-            //com[i + 2 * FRAME_JUMP].get_accely() < -30 &&
+            com[i + 2 * FRAME_JUMP].get_accely() < -30 &&
 
             takeOff == false)
         {
@@ -939,6 +934,39 @@ int main(int argc, char **argv)
             frameEnd = takeOffFrame + 21;
         }
     }
+
+    // Estimate height of athlete
+    double xDiff;
+    double yDiff;
+
+    // Measure lower leg height
+    xDiff = abs(lLowLeg[takeOffFrame].get_hx() - lLowLeg[takeOffFrame].get_lx());
+    yDiff = abs(lLowLeg[takeOffFrame].get_hy() - lLowLeg[takeOffFrame].get_ly());
+    double lowLegHeight = sqrt(pow(xDiff, 2.0) + pow(yDiff, 2.0));
+
+    // Measure upper leg height
+    xDiff = abs(lUpLeg[takeOffFrame].get_hx() - lUpLeg[takeOffFrame].get_lx());
+    yDiff = abs(lUpLeg[takeOffFrame].get_hy() - lUpLeg[takeOffFrame].get_ly());
+    double upLegHeight = sqrt(pow(xDiff, 2.0) + pow(yDiff, 2.0));
+
+    // Measure torso height
+    xDiff = abs(torso[takeOffFrame].get_hx() - torso[takeOffFrame].get_lx());
+    yDiff = abs(torso[takeOffFrame].get_hy() - torso[takeOffFrame].get_ly());
+    double torsoHeight = sqrt(pow(xDiff, 2.0) + pow(yDiff, 2.0));
+
+    // Measure head height
+    xDiff = abs(head[takeOffFrame].get_hx() - head[takeOffFrame].get_lx());
+    yDiff = abs(head[takeOffFrame].get_hy() - head[takeOffFrame].get_ly());
+    double headHeight = sqrt(pow(xDiff, 2.0) + pow(yDiff, 2.0));
+    headHeight *= (double) 2.0; // To account for measurement of top of head
+
+    double totalHeight = lowLegHeight + upLegHeight + torsoHeight + headHeight;
+
+    // Find com height percentage at take off
+    double comHeight = lLowLeg[takeOffFrame].get_ly() - com[takeOffFrame].get_y();
+    double percentage = comHeight / totalHeight;
+    cout << "COMHEIGHT: " << comHeight << endl;
+    cout << "PERCENTAGE: " << percentage << endl;
 
     // PRINT VELOCITY VALUES FOR DEBUGGING
     for (int i = 0; i < com.size(); i++)
@@ -989,7 +1017,8 @@ int main(int argc, char **argv)
         if (i > frameBegin)
         {
             //draw skeleton trace
-            if(i < frameEnd){
+            if (i < frameEnd)
+            {
                 //draw head
                 cv::Point2d skeleton_pt_l, skeleton_pt_h;
                 skeleton_pt_l.x = (double)head[i].get_lx();
@@ -1091,7 +1120,8 @@ int main(int argc, char **argv)
                 cv::line(frame, skeleton_pt_l, skeleton_pt_h, (10, 120, 0), 2, 8, 0);
             }
 
-            if(i >= takeOffFrame){
+            if (i >= takeOffFrame)
+            {
                 //draw head
                 cv::Point2d skeleton_pt_l, skeleton_pt_h;
                 skeleton_pt_l.x = (double)head[takeOffFrame].get_lx();
@@ -1199,19 +1229,18 @@ int main(int argc, char **argv)
                 skeleton_pt_h.y = (double)lUpArm[takeOffFrame].get_hy();
                 double x_diff = (skeleton_pt_h.x - skeleton_pt_l.x);
                 double y_diff = (skeleton_pt_h.y - skeleton_pt_l.y);
-                skeleton_pt_l.x = skeleton_pt_l.x - (x_diff/4);
-                skeleton_pt_l.y = skeleton_pt_l.y - (y_diff/4);
-                skeleton_pt_h.x = skeleton_pt_h.x + (x_diff/4);
-                skeleton_pt_h.y = skeleton_pt_h.y + (y_diff/4);
+                skeleton_pt_l.x = skeleton_pt_l.x - (x_diff / 4);
+                skeleton_pt_l.y = skeleton_pt_l.y - (y_diff / 4);
+                skeleton_pt_h.x = skeleton_pt_h.x + (x_diff / 4);
+                skeleton_pt_h.y = skeleton_pt_h.y + (y_diff / 4);
                 cv::line(frame, skeleton_pt_l, skeleton_pt_h, cv::Scalar(0, 255, 255), 2, 8, 0);
-                double takeoff_angle = atan(y_diff/x_diff) * (180/3.14159265);
+                double takeoff_angle = atan(y_diff / x_diff) * (180 / 3.14159265);
                 cv::Point2d degPt;
                 degPt.x = 50;
                 degPt.y = 90;
                 string rounded_deg = "";
                 rounded_deg = to_string(roundf(takeoff_angle * -100) / 100);
                 cv::putText(frame, rounded_deg + " Degrees", degPt, CV_FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 255), 2);
-
             }
 
             //Draw athlete COM velocity every third frame
@@ -1227,7 +1256,8 @@ int main(int argc, char **argv)
             velPt.y = 50;
             string rounded = "";
             rounded = to_string(roundf(instant_vel * 100) / 100);
-            if(i <= frameEnd){
+            if (i <= frameEnd)
+            {
                 cv::putText(frame, rounded + "m/s", velPt, CV_FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
             }
             // Draw COM point

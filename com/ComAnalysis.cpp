@@ -683,16 +683,20 @@ void com_accel(vector<comData> &com)
  * COM velocity and acceleration
  * drawing of everything
  * 
+ * tweak take off point
+ * com height percentage
+ * 
  * Take off angle (detect take off point)
  * draw arrows for aceleration
  * pause video for a second at take off
+ * save to a new video
  */
 int main(int argc, char **argv)
 {
 
     // Set up strings for dynamic file retrieval
-    const string prefix = "/Users/DavidChen/Desktop/output/120fps_";
-    //const string prefix = "/home/james/ece496/openpose/output/120fps_";
+    //const string prefix = "/Users/DavidChen/Desktop/output/120fps_";
+    const string prefix = "/home/james/ece496/openpose/output/120fps_";
     const string suffix = "_keypoints.json";
     stringstream ss;
     string fileName;
@@ -902,11 +906,15 @@ int main(int argc, char **argv)
     {
         // Detecs when athlete enters the frame
         if (com[i].get_velx() < SPEED_LOW &&
-            com[i - 1].get_velx() < SPEED_LOW &&
-            com[i - 2].get_velx() < SPEED_LOW &&
+            com[i + 1].get_velx() < SPEED_LOW &&
+            com[i + 2].get_velx() < SPEED_LOW &&
+            com[i + 3].get_velx() < SPEED_LOW &&
+            com[i + 4].get_velx() < SPEED_LOW &&
             com[i].get_velx() > SPEED_HIGH &&
-            com[i - 1].get_velx() > SPEED_HIGH &&
-            com[i - 2].get_velx() > SPEED_HIGH &&
+            com[i + 1].get_velx() > SPEED_HIGH &&
+            com[i + 2].get_velx() > SPEED_HIGH &&
+            com[i + 3].get_velx() > SPEED_HIGH &&
+            com[i + 4].get_velx() > SPEED_HIGH &&
             begin == false)
         {
             begin = true;
@@ -953,8 +961,8 @@ int main(int argc, char **argv)
     cout << "MAX Y: " << maxY << endl;
 
     // Open video for drawing
-    cv::VideoCapture video("/Users/DavidChen/Desktop/output/result.avi");
-    //cv::VideoCapture video("/home/james/ece496/openpose/input/120fps.mp4");
+    //cv::VideoCapture video("/Users/DavidChen/Desktop/output/result.avi");
+    cv::VideoCapture video("/home/james/ece496/openpose/input/120fps.mp4");
     cv::Mat frame;
     // Point arrays for persistant drawing
     vector<cv::Point2d> pointarray;
@@ -1234,7 +1242,7 @@ int main(int argc, char **argv)
                 //low pass filtering the acceleration data
                 if (sqrt(pow((pointarray2[j].x - pointarray[j].x), 2) + pow((pointarray2[j].y - pointarray[j].y), 2)) < 100)
                 {
-                    cv::arrowedLine(frame, pointarray[j], pointarray2[j], cv::Scalar(0, 0, 255), 2, 8, 0);
+                    cv::line(frame, pointarray[j], pointarray2[j], cv::Scalar(0, 0, 255), 2, 8, 0);
                 }
             }
         }

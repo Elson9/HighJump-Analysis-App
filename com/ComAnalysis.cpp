@@ -924,58 +924,14 @@ int main(int argc, char **argv)
     double maxX = 0;
     double maxY = 0;
 
-    // PRINT VELOCITY VALUES FOR DEBUGGING
-    for (int i = 0; i < com.size(); i++)
-    {
-        //cout << com[i].get_x() << ", " << com[i].get_y() << endl;
-        //cout << com[i].get_velx() << ", " << com[i].get_vely() << endl;
-        cout << com[i].get_accelx() << ", " << com[i].get_accely() << endl;
-
-        if (com[i].get_accelx() > maxX)
-        {
-            maxX = com[i].get_accelx();
-        }
-        if (com[i].get_accely() > maxY)
-        {
-            maxY = com[i].get_accely();
-        }
-    }
-
-    cout << "MAX X: " << maxX << endl;
-    cout << "MAX Y: " << maxY << endl;
-
-    // Open video for drawing
-    //cv::VideoCapture video("/Users/DavidChen/Desktop/output/result.avi");
-    cv::VideoCapture video("/home/james/ece496/openpose/input/120fps.mp4");
-    cv::Mat frame;
-    // Point arrays for persistant drawing
-    vector<cv::Point2d> pointarray;
-    vector<cv::Point2d> pointarray2;
-
-    //Checks when to begin COM drawing
+    // Get begin point, takeoff point, and end point
     bool begin = false;
     int frameBegin;
-
-    // Checks if take off point has been detected
+    int frameEnd;
     bool takeOff = false;
     int takeOffFrame;
-
-    int i = 0;
-    while (video.read(frame))
+    for (int i = 0; i < com.size(); i++)
     {
-
-        cv::Point2d point;
-        cv::Point2d point2;
-
-        point.x = (double)com[i].get_x();
-        point.y = (double)com[i].get_y();
-
-        point2.x = point.x + (double)com[i].get_accelx();
-        point2.y = point.y + (double)com[i].get_accely();
-
-        pointarray.push_back(point);
-        pointarray2.push_back(point2);
-
         // Detecs when athlete enters the frame
         if (com[i].get_velx() < SPEED_LOW &&
             com[i - 1].get_velx() < SPEED_LOW &&
@@ -1004,23 +960,70 @@ int main(int argc, char **argv)
             takeOff = true;
             takeOffFrame = i - (i % FRAME_JUMP);
             cout << "takeoff " << takeOffFrame << endl;
+            frameEnd = takeOffFrame + 21;
+        }
+    }
+
+    // PRINT VELOCITY VALUES FOR DEBUGGING
+    for (int i = 0; i < com.size(); i++)
+    {
+        //cout << com[i].get_x() << ", " << com[i].get_y() << endl;
+        //cout << com[i].get_velx() << ", " << com[i].get_vely() << endl;
+        cout << com[i].get_accelx() << ", " << com[i].get_accely() << endl;
+
+        if (com[i].get_accelx() > maxX)
+        {
+            maxX = com[i].get_accelx();
+        }
+        if (com[i].get_accely() > maxY)
+        {
+            maxY = com[i].get_accely();
+        }
+    }
+
+    cout << "MAX X: " << maxX << endl;
+    cout << "MAX Y: " << maxY << endl;
+
+    // Open video for drawing
+    //cv::VideoCapture video("/Users/DavidChen/Desktop/output/result.avi");
+    cv::VideoCapture video("/home/james/ece496/openpose/input/120fps.mp4");
+    cv::Mat frame;
+    // Point arrays for persistant drawing
+    vector<cv::Point2d> pointarray;
+    vector<cv::Point2d> pointarray2;
+
+    int i = 0;
+    while (video.read(frame))
+    {
+
+        cv::Point2d point;
+        cv::Point2d point2;
+
+        if (i < frameEnd)
+        {
+            point.x = (double)com[i].get_x();
+            point.y = (double)com[i].get_y();
+            point2.x = point.x + (double)com[i].get_accelx();
+            point2.y = point.y + (double)com[i].get_accely();
+            pointarray.push_back(point);
+            pointarray2.push_back(point2);
         }
 
-        if (begin && com[i].get_comp() == true)
+        if (i > frameBegin)
         {
             // Draw COM point
-            if (com[i].get_comp() == true)
+            if (i < frameEnd)
             {
                 cv::circle(frame, point, 5, (0, 0, 255), -1);
             }
             //cv::line(frame, point, point2, 5, (0, 0, 255), -1);
-            for (int i = frameBegin; i < pointarray.size(); i = i + FRAME_JUMP)
+            for (int j = frameBegin; j < pointarray.size(); j = j + FRAME_JUMP)
             //for (int i = 0; i < pointarray.size(); i++)
             {
                 //low pass filtering the acceleration data
-                if (sqrt(pow((pointarray2[i].x - pointarray[i].x), 2) + pow((pointarray2[i].y - pointarray[i].y), 2)) < 100)
+                if (sqrt(pow((pointarray2[j].x - pointarray[j].x), 2) + pow((pointarray2[j].y - pointarray[j].y), 2)) < 100)
                 {
-                    cv::line(frame, pointarray[i], pointarray2[i], (0, 0, 255), 2, 8, 0);
+                    cv::line(frame, pointarray[j], pointarray2[j], (0, 0, 255), 2, 8, 0);
                 }
             }
         }

@@ -188,8 +188,6 @@ class comData
     double accely;
     double filtered_x;
     double filtered_y;
-    // If COM Calc used every joint
-    bool complete;
 
   public:
     comData()
@@ -244,11 +242,6 @@ class comData
         accely = accelY;
     }
 
-    void set_comp(bool isComp)
-    {
-        complete = isComp;
-    }
-
     double get_x()
     {
         return x;
@@ -277,11 +270,6 @@ class comData
     double get_accely()
     {
         return accely;
-    }
-
-    bool get_comp()
-    {
-        return complete;
     }
 };
 
@@ -596,24 +584,6 @@ void com_calc(
                      rLowArm[i].get_comy() * FOREARM_COM +
                      lLowArm[i].get_comy() * FOREARM_COM +
                      head[i].get_comy() * HEAD_COM);
-        if (rLowLeg[i].get_comx() == 0 ||
-            lLowLeg[i].get_comx() == 0 ||
-            rUpLeg[i].get_comx() == 0 ||
-            lUpLeg[i].get_comx() == 0 ||
-            rPelvis[i].get_comx() == 0 ||
-            torso[i].get_comx() == 0 ||
-            rUpArm[i].get_comx() == 0 ||
-            lUpArm[i].get_comx() == 0 ||
-            rLowArm[i].get_comx() == 0 ||
-            lLowArm[i].get_comx() == 0 ||
-            head[i].get_comx() == 0)
-        {
-            curCOM.set_comp(false);
-        }
-        else
-        {
-            curCOM.set_comp(true);
-        }
         com.push_back(curCOM);
     }
 }
@@ -712,10 +682,6 @@ void com_accel(vector<comData> &com)
  * drawing of everything
  * 
  * Take off angle (detect take off point)
- * detect when to finish drawing
- * draw skeleton
- * athlete's velocity
- * only do COM calculation when all joint COM values are recorded properly (in progress)
  * draw arrows for aceleration
  * pause video for a second at take off
  */
@@ -723,8 +689,8 @@ int main(int argc, char **argv)
 {
 
     // Set up strings for dynamic file retrieval
-    const string prefix = "/Users/DavidChen/Desktop/output/120fps_";
-    //const string prefix = "/home/james/ece496/openpose/output/120fps_";
+    //const string prefix = "/Users/DavidChen/Desktop/output/120fps_";
+    const string prefix = "/home/james/ece496/openpose/output/120fps_";
     const string suffix = "_keypoints.json";
     stringstream ss;
     string fileName;
@@ -985,8 +951,8 @@ int main(int argc, char **argv)
     cout << "MAX Y: " << maxY << endl;
 
     // Open video for drawing
-    cv::VideoCapture video("/Users/DavidChen/Desktop/output/result.avi");
-    //cv::VideoCapture video("/home/james/ece496/openpose/input/120fps.mp4");
+    //cv::VideoCapture video("/Users/DavidChen/Desktop/output/result.avi");
+    cv::VideoCapture video("/home/james/ece496/openpose/input/120fps.mp4");
     cv::Mat frame;
     // Point arrays for persistant drawing
     vector<cv::Point2d> pointarray;
@@ -1114,8 +1080,9 @@ int main(int argc, char **argv)
 
             //Draw athlete COM velocity
             double instant_vel;
-            if(i%3 == 0){
-                instant_vel = (sqrt(pow((com[i+1].get_x() - com[i].get_x()), 2))*0.6);
+            if (i % 3 == 0)
+            {
+                instant_vel = (sqrt(pow((com[i + 1].get_x() - com[i].get_x()), 2)) * 0.6);
             }
             cout.precision(10);
             cout << fixed << instant_vel << endl;

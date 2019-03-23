@@ -1028,98 +1028,98 @@ int main(int argc, char **argv)
                 skeleton_pt_h.x = (double)head[i].get_hx();
                 skeleton_pt_h.y = (double)head[i].get_hy();
                 cv::circle(frame, point, 5, (255, 0, 0), -1);
-                cv::line(frame, skeleton_pt_l, skeleton_pt_h, (10, 120, 0), 2, 8, 0);
+                cv::line(frame, skeleton_pt_l, skeleton_pt_h, cv::Scalar(255, 0, 255), 2, 8, 0);
 
                 //draw rcollar
                 skeleton_pt_l.x = (double)rCollar[i].get_lx();
                 skeleton_pt_l.y = (double)rCollar[i].get_ly();
                 skeleton_pt_h.x = (double)rCollar[i].get_hx();
                 skeleton_pt_h.y = (double)rCollar[i].get_hy();
-                cv::line(frame, skeleton_pt_l, skeleton_pt_h, (10, 120, 0), 2, 8, 0);
+                cv::line(frame, skeleton_pt_l, skeleton_pt_h, cv::Scalar(255, 0, 255), 2, 8, 0);
 
                 //draw rUpArm
                 skeleton_pt_l.x = (double)rUpArm[i].get_lx();
                 skeleton_pt_l.y = (double)rUpArm[i].get_ly();
                 skeleton_pt_h.x = (double)rUpArm[i].get_hx();
                 skeleton_pt_h.y = (double)rUpArm[i].get_hy();
-                cv::line(frame, skeleton_pt_l, skeleton_pt_h, (10, 120, 0), 2, 8, 0);
+                cv::line(frame, skeleton_pt_l, skeleton_pt_h, cv::Scalar(255, 0, 255), 2, 8, 0);
 
                 //draw rLowArm
                 skeleton_pt_l.x = (double)rLowArm[i].get_lx();
                 skeleton_pt_l.y = (double)rLowArm[i].get_ly();
                 skeleton_pt_h.x = (double)rLowArm[i].get_hx();
                 skeleton_pt_h.y = (double)rLowArm[i].get_hy();
-                cv::line(frame, skeleton_pt_l, skeleton_pt_h, (10, 120, 0), 2, 8, 0);
+                cv::line(frame, skeleton_pt_l, skeleton_pt_h, cv::Scalar(255, 0, 255), 2, 8, 0);
 
                 //draw lCollar
                 skeleton_pt_l.x = (double)lCollar[i].get_lx();
                 skeleton_pt_l.y = (double)lCollar[i].get_ly();
                 skeleton_pt_h.x = (double)lCollar[i].get_hx();
                 skeleton_pt_h.y = (double)lCollar[i].get_hy();
-                cv::line(frame, skeleton_pt_l, skeleton_pt_h, (10, 120, 0), 2, 8, 0);
+                cv::line(frame, skeleton_pt_l, skeleton_pt_h, cv::Scalar(255, 0, 255), 2, 8, 0);
 
                 //draw lUpArm
                 skeleton_pt_l.x = (double)lUpArm[i].get_lx();
                 skeleton_pt_l.y = (double)lUpArm[i].get_ly();
                 skeleton_pt_h.x = (double)lUpArm[i].get_hx();
                 skeleton_pt_h.y = (double)lUpArm[i].get_hy();
-                cv::line(frame, skeleton_pt_l, skeleton_pt_h, (10, 120, 0), 2, 8, 0);
+                cv::line(frame, skeleton_pt_l, skeleton_pt_h, cv::Scalar(255, 0, 255), 2, 8, 0);
 
                 //draw lLowArm
                 skeleton_pt_l.x = (double)lLowArm[i].get_lx();
                 skeleton_pt_l.y = (double)lLowArm[i].get_ly();
                 skeleton_pt_h.x = (double)lLowArm[i].get_hx();
                 skeleton_pt_h.y = (double)lLowArm[i].get_hy();
-                cv::line(frame, skeleton_pt_l, skeleton_pt_h, (10, 120, 0), 2, 8, 0);
+                cv::line(frame, skeleton_pt_l, skeleton_pt_h, cv::Scalar(255, 0, 255), 2, 8, 0);
 
                 //draw torso
                 skeleton_pt_l.x = (double)torso[i].get_lx();
                 skeleton_pt_l.y = (double)torso[i].get_ly();
                 skeleton_pt_h.x = (double)torso[i].get_hx();
                 skeleton_pt_h.y = (double)torso[i].get_hy();
-                cv::line(frame, skeleton_pt_l, skeleton_pt_h, (10, 120, 0), 2, 8, 0);
+                cv::line(frame, skeleton_pt_l, skeleton_pt_h, cv::Scalar(255, 0, 255), 2, 8, 0);
 
                 //draw rPelvis
                 skeleton_pt_l.x = (double)rPelvis[i].get_lx();
                 skeleton_pt_l.y = (double)rPelvis[i].get_ly();
                 skeleton_pt_h.x = (double)rPelvis[i].get_hx();
                 skeleton_pt_h.y = (double)rPelvis[i].get_hy();
-                cv::line(frame, skeleton_pt_l, skeleton_pt_h, (10, 120, 0), 2, 8, 0);
+                cv::line(frame, skeleton_pt_l, skeleton_pt_h, cv::Scalar(255, 0, 255), 2, 8, 0);
 
                 //draw rUpLeg
                 skeleton_pt_l.x = (double)rUpLeg[i].get_lx();
                 skeleton_pt_l.y = (double)rUpLeg[i].get_ly();
                 skeleton_pt_h.x = (double)rUpLeg[i].get_hx();
                 skeleton_pt_h.y = (double)rUpLeg[i].get_hy();
-                cv::line(frame, skeleton_pt_l, skeleton_pt_h, (10, 120, 0), 2, 8, 0);
+                cv::line(frame, skeleton_pt_l, skeleton_pt_h, cv::Scalar(255, 0, 255), 2, 8, 0);
 
                 //draw rLowLeg
                 skeleton_pt_l.x = (double)rLowLeg[i].get_lx();
                 skeleton_pt_l.y = (double)rLowLeg[i].get_ly();
                 skeleton_pt_h.x = (double)rLowLeg[i].get_hx();
                 skeleton_pt_h.y = (double)rLowLeg[i].get_hy();
-                cv::line(frame, skeleton_pt_l, skeleton_pt_h, (10, 120, 0), 2, 8, 0);
+                cv::line(frame, skeleton_pt_l, skeleton_pt_h, cv::Scalar(255, 0, 255), 2, 8, 0);
 
                 //draw lPelvis
                 skeleton_pt_l.x = (double)lPelvis[i].get_lx();
                 skeleton_pt_l.y = (double)lPelvis[i].get_ly();
                 skeleton_pt_h.x = (double)lPelvis[i].get_hx();
                 skeleton_pt_h.y = (double)lPelvis[i].get_hy();
-                cv::line(frame, skeleton_pt_l, skeleton_pt_h, (10, 120, 0), 2, 8, 0);
+                cv::line(frame, skeleton_pt_l, skeleton_pt_h, cv::Scalar(255, 0, 255), 2, 8, 0);
 
                 //draw lUpLeg
                 skeleton_pt_l.x = (double)lUpLeg[i].get_lx();
                 skeleton_pt_l.y = (double)lUpLeg[i].get_ly();
                 skeleton_pt_h.x = (double)lUpLeg[i].get_hx();
                 skeleton_pt_h.y = (double)lUpLeg[i].get_hy();
-                cv::line(frame, skeleton_pt_l, skeleton_pt_h, (10, 120, 0), 2, 8, 0);
+                cv::line(frame, skeleton_pt_l, skeleton_pt_h, cv::Scalar(255, 0, 255), 2, 8, 0);
 
                 //draw lLowLeg
                 skeleton_pt_l.x = (double)lLowLeg[i].get_lx();
                 skeleton_pt_l.y = (double)lLowLeg[i].get_ly();
                 skeleton_pt_h.x = (double)lLowLeg[i].get_hx();
                 skeleton_pt_h.y = (double)lLowLeg[i].get_hy();
-                cv::line(frame, skeleton_pt_l, skeleton_pt_h, (10, 120, 0), 2, 8, 0);
+                cv::line(frame, skeleton_pt_l, skeleton_pt_h, cv::Scalar(255, 0, 255), 2, 8, 0);
             }
 
             if (i >= takeOffFrame)
@@ -1297,7 +1297,6 @@ int main(int argc, char **argv)
             {
                 cv::circle(frame, point, 5, (0, 0, 255), -1);
             }
-            //cv::line(frame, point, point2, 5, (0, 0, 255), -1);
             for (int j = frameBegin; j < pointarray.size(); j = j + FRAME_JUMP)
             //for (int i = 0; i < pointarray.size(); i++)
             {
@@ -1308,7 +1307,6 @@ int main(int argc, char **argv)
                 }
             }
         }
-        //cv::line(frame, point, point2, (0, 0, 255), 3, 8, 0);
 
         // Display the frame
         cv::imshow("Video feed", frame);

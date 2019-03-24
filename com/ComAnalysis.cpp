@@ -687,15 +687,14 @@ void com_accel(vector<comData> &com)
  * 
  * Take off angle (detect take off point)
  * draw arrows for aceleration
- * pause video for a second at take off
  * save to a new video
  */
 int main(int argc, char **argv)
 {
 
     // Set up strings for dynamic file retrieval
-    const string prefix = "/Users/DavidChen/Desktop/output/120fps_";
-    //const string prefix = "/home/james/ece496/openpose/output/120fps_";
+    //const string prefix = "/Users/DavidChen/Desktop/output/120fps_";
+    const string prefix = "/home/james/ece496/openpose/output/120fps_";
     const string suffix = "_keypoints.json";
     stringstream ss;
     string fileName;
@@ -958,7 +957,7 @@ int main(int argc, char **argv)
     xDiff = abs(head[takeOffFrame].get_hx() - head[takeOffFrame].get_lx());
     yDiff = abs(head[takeOffFrame].get_hy() - head[takeOffFrame].get_ly());
     double headHeight = sqrt(pow(xDiff, 2.0) + pow(yDiff, 2.0));
-    headHeight *= (double) 2.0; // To account for measurement of top of head
+    headHeight *= (double)2.0; // To account for measurement of top of head
 
     double totalHeight = lowLegHeight + upLegHeight + torsoHeight + headHeight;
 
@@ -989,10 +988,27 @@ int main(int argc, char **argv)
     cout << "MAX Y: " << maxY << endl;
 
     // Open video for drawing
-    cv::VideoCapture video("/Users/DavidChen/Desktop/output/result.avi");
-    //cv::VideoCapture video("/home/james/ece496/openpose/input/120fps.mp4");
+    const string source = "/home/james/ece496/openpose/input/120fps.mp4";
+    const string outputName = "/home/james/ece496/openpose/input/analyzed.avi";
+    //cv::VideoCapture video("/Users/DavidChen/Desktop/output/result.avi");
+    cv::VideoCapture video(source);
+    if (!video.isOpened())
+    {
+        cout << "Could not open the input video: " << source << endl;
+        return -1;
+    }
+
+    // Get input size and type
+    cv::Size S = cv::Size((int)video.get(CV_CAP_PROP_FRAME_WIDTH), // Acquire input size
+                          (int)video.get(CV_CAP_PROP_FRAME_HEIGHT));
+    int ex = static_cast<int>(video.get(CV_CAP_PROP_FOURCC));
+
+    // Open output video
+    cv::VideoWriter outputVideo;
+    outputVideo.open(outputName, CV_FOURCC('M', 'J', 'P', 'G'), 30.0, S, true);
+
     cv::Mat frame;
-    // Point arrays for persistant drawing
+    // Point arrays for persistant drawing of COM acceleration
     vector<cv::Point2d> pointarray;
     vector<cv::Point2d> pointarray2;
 
@@ -1008,6 +1024,7 @@ int main(int argc, char **argv)
 
         if (i < frameEnd)
         {
+            // These points are for COM acceleration
             point.x = (double)com[i].get_x();
             point.y = (double)com[i].get_y();
             point2.x = point.x + (double)com[i].get_accelx();
@@ -1248,7 +1265,7 @@ int main(int argc, char **argv)
                 deg_stream << fixed << setprecision(3) << val;
                 string rounded_deg = deg_stream.str();
                 cv::putText(frame, rounded_deg + " Degrees", degPt, CV_FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 255), 1);
-                
+
                 //Display COM height percentage
                 degPt.x = 400;
                 degPt.y = 50;
@@ -1264,15 +1281,17 @@ int main(int argc, char **argv)
             if ((i % VELOCITY_DELAY == 0) && i < takeOffFrame)
             {
                 double velStor = 0;
-                for(int ct = 0; ct < VELOCITY_DELAY; ct++){
+                for (int ct = 0; ct < VELOCITY_DELAY; ct++)
+                {
                     velStor += (sqrt(pow((com[i + ct + 1].get_x() - com[i + ct].get_x()), 2)) * 0.6);
                 }
-                instant_vel = velStor/VELOCITY_DELAY;
+                instant_vel = velStor / VELOCITY_DELAY;
                 velTot += instant_vel;
                 velCtr++;
             }
-            if((i % VELOCITY_DELAY == 0) && i >= takeOffFrame){
-                instant_vel = velTot/velCtr;
+            if ((i % VELOCITY_DELAY == 0) && i >= takeOffFrame)
+            {
+                instant_vel = velTot / velCtr;
             }
             cout.precision(4);
             cout << fixed << instant_vel << endl;
@@ -1286,11 +1305,13 @@ int main(int argc, char **argv)
             stringstream stream;
             stream << fixed << setprecision(3) << val;
             string rounded = stream.str();
-            if(i <= frameEnd){
+            if (i <= frameEnd)
+            {
                 cv::putText(frame, rounded + "m/s", velPt, CV_FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
             }
-            if(i > frameEnd){
-                cv::putText(frame, "Average Vel "+ rounded + "m/s", velPt, CV_FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
+            if (i > frameEnd)
+            {
+                cv::putText(frame, "Average Vel " + rounded + "m/s", velPt, CV_FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
             }
             // Draw COM point
             if (i < frameEnd)
@@ -1311,12 +1332,17 @@ int main(int argc, char **argv)
         // Display the frame
         cv::imshow("Video feed", frame);
 
+        // Write the frame
+        outputVideo.write(frame);
+
         // For breaking the loop
         if (cv::waitKey(25) >= 0)
             break;
 
         i++;
     }
+
+    outputVideo.release();
 
     return 0;
 }

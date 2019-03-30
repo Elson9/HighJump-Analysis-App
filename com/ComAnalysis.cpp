@@ -32,7 +32,7 @@
 #define FRAME_JUMP 3
 
 // Speed ranges for detecting athlete
-#define SPEED_LOW -75
+#define SPEED_LOW -50
 #define SPEED_HIGH -125
 
 #define VELOCITY_DELAY 15
@@ -689,12 +689,13 @@ void com_accel(vector<comData> &com)
  * draw arrows for aceleration
  * save to a new video
  */
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
 
     // Set up strings for dynamic file retrieval
     //const string prefix = "/Users/DavidChen/Desktop/output/120fps_";
-    const string prefix = "/home/james/ece496/openpose/output/120fps_";
+    const string prefix = "/home/james/ece496/openpose/output/"; //120fps_
+    string inputFileName = argv[1];
     const string suffix = "_keypoints.json";
     stringstream ss;
     string fileName;
@@ -735,7 +736,7 @@ int main(int argc, char **argv)
 
     // Get first frame
     ss << setw(12) << setfill('0') << curFrame;
-    fileName = prefix + ss.str() + suffix;
+    fileName = prefix + inputFileName + "_" + ss.str() + suffix;
     inFile.open(fileName, ios::in);
 
     // Continue for each frame
@@ -745,7 +746,6 @@ int main(int argc, char **argv)
 
         // Get frame json data
         getline(inFile, jsonData);
-        //cout << "getting JSON data for frame " << curFrame << endl;
 
         // Check how many people have been detected
         int peopleNum = 0;
@@ -758,12 +758,6 @@ int main(int argc, char **argv)
             }
         }
         peopleNum--; //number of people is 1 less than number of left brackets
-        //cout << "people detected: " << peopleNum << endl;
-
-        // Debugging purposes
-        //if (peopleNum == 1) {
-        //    cout << jsonData << endl;
-        //}
 
         // Parse pose data into vectors
         get_frame_pose_data(nose, neck, rShoulder, rElbow, rWrist, lShoulder,
@@ -776,19 +770,9 @@ int main(int argc, char **argv)
         ss.str(string());
         curFrame++;
         ss << setw(12) << setfill('0') << curFrame;
-        fileName = prefix + ss.str() + suffix;
+        fileName = prefix + inputFileName + "_" + ss.str() + suffix;
         inFile.open(fileName, ios::in);
     }
-
-    //cout << "done" << endl;
-
-    //cout << nose.size() << endl;
-    //cout << neck.size() << endl;
-    //cout << rHeel.size() << endl;
-
-    //        for (int i = 0; i < neck.size(); i++) {
-    //            cout << neck[i].get_x() << ", " << neck[i].get_y() << endl;
-    //        }
 
     // Fill in missing point frames
     approx_missing_data(nose);      // 0
@@ -816,10 +800,6 @@ int main(int argc, char **argv)
     approx_missing_data(rBigToe);   // 22
     approx_missing_data(rSmallToe); // 23
     approx_missing_data(rHeel);     // 24
-
-    //    for (int i = 0; i < neck.size(); i++) {
-    //        cout << neck[i].get_x() << ", " << neck[i].get_y() << endl;
-    //    }
 
     // Create limbs
     vector<LimbCoord> head;
@@ -853,11 +833,6 @@ int main(int argc, char **argv)
     joint_creation(lKnee, lHip, lUpLeg);
     joint_creation(lAnkle, lKnee, lLowLeg);
 
-    //    for (int i = 0; i < head.size(); i++) {
-    //        cout << head[i].get_lx() << ", " << head[i].get_ly() << ", " <<
-    //                head[i].get_hx() << ", " << head[i].get_hy() << endl;
-    //    }
-
     // Get COM positions for applicable joints
     limb_com(rLowLeg, SHIN_DISTAL);
     limb_com(lLowLeg, SHIN_DISTAL);
@@ -871,16 +846,10 @@ int main(int argc, char **argv)
     limb_com_pelvis(rPelvis);
     limb_com_head(head);
 
-    //        for (int i = 0; i < rLowLeg.size(); i++) {
-    //            cout << rLowLeg[i].get_comx() << ", " << rLowLeg[i].get_comy() << endl;
-    //        }
-
     // Calculate total COM value
     vector<comData> com;
     com_calc(rLowLeg, lLowLeg, rUpLeg, lUpLeg, torso, rUpArm,
              lUpArm, rLowArm, lLowArm, rPelvis, head, com);
-
-    cout << com.size() << endl;
 
     //stablize_first_frames(com, 75);
 
@@ -896,20 +865,20 @@ int main(int argc, char **argv)
 
     // Get begin point, takeoff point, and end point
     bool begin = false;
-    int frameBegin;
+    int frameBegin = 0;
     int frameEnd;
     bool takeOff = false;
     int takeOffFrame;
     for (int i = 0; i < com.size(); i++)
     {
         // Detecs when athlete enters the frame
-        if (com[i].get_velx() < SPEED_LOW &&
-            com[i - 1].get_velx() < SPEED_LOW &&
-            com[i - 2].get_velx() < SPEED_LOW &&
-            com[i].get_velx() > SPEED_HIGH &&
-            com[i - 1].get_velx() > SPEED_HIGH &&
-            com[i - 2].get_velx() > SPEED_HIGH &&
-            begin == false)
+        if (begin == false &&
+            com[i - (i % VEL_JUMP)].get_velx() < SPEED_LOW &&
+            com[i - (i % VEL_JUMP) + VEL_JUMP].get_velx() < SPEED_LOW &&
+            com[i - (i % VEL_JUMP) + (2 * VEL_JUMP)].get_velx() < SPEED_LOW &&
+            com[i - (i % VEL_JUMP)].get_velx() > SPEED_HIGH &&
+            com[i - (i % VEL_JUMP) + VEL_JUMP].get_velx() > SPEED_HIGH &&
+            com[i - (i % VEL_JUMP) + (2 * VEL_JUMP)].get_velx() > SPEED_HIGH)
         {
             begin = true;
             // Sets frame to begin drawing from point array, and aligns to frame jump
@@ -918,19 +887,16 @@ int main(int argc, char **argv)
         }
 
         // Detects take off point
-        if (com[i].get_accelx() > 0 &&
-            com[i + FRAME_JUMP].get_accelx() > 0 &&
-            com[i + 2 * FRAME_JUMP].get_accelx() > 0 &&
-            com[i].get_accely() < -30 &&
-            com[i + FRAME_JUMP].get_accely() < -30 &&
-            com[i + 2 * FRAME_JUMP].get_accely() < -30 &&
-
-            takeOff == false)
+        if (takeOff == false &&
+            com[i - (i % FRAME_JUMP)].get_accelx() > 0 &&
+            com[i - (i % FRAME_JUMP) + FRAME_JUMP].get_accelx() > 0 &&
+            com[i - (i % FRAME_JUMP)].get_accely() < SPEED_LOW &&
+            com[i - (i % FRAME_JUMP) + FRAME_JUMP].get_accely() < SPEED_LOW)
         {
             takeOff = true;
-            takeOffFrame = i - (i % FRAME_JUMP);
+            takeOffFrame = i - (i % FRAME_JUMP) - FRAME_JUMP;
             cout << "takeoff " << takeOffFrame << endl;
-            frameEnd = takeOffFrame + 21;
+            frameEnd = takeOffFrame + 4 * FRAME_JUMP;
         }
     }
 
@@ -972,7 +938,7 @@ int main(int argc, char **argv)
     {
         //cout << com[i].get_x() << ", " << com[i].get_y() << endl;
         //cout << com[i].get_velx() << ", " << com[i].get_vely() << endl;
-        cout << com[i].get_accelx() << ", " << com[i].get_accely() << endl;
+        //cout << com[i].get_accelx() << ", " << com[i].get_accely() << endl;
 
         if (com[i].get_accelx() > maxX)
         {
@@ -988,8 +954,9 @@ int main(int argc, char **argv)
     cout << "MAX Y: " << maxY << endl;
 
     // Open video for drawing
-    const string source = "/home/james/ece496/openpose/input/120fps.mp4";
-    const string outputName = "/home/james/ece496/openpose/input/analyzed.avi";
+    const string sourcePath = "/home/james/ece496/openpose/input/";
+    const string source = sourcePath + argv[1] + ".mp4";
+    const string outputName = sourcePath + argv[1] + "_analyzed.avi";
     //cv::VideoCapture video("/Users/DavidChen/Desktop/output/result.avi");
     cv::VideoCapture video(source);
     if (!video.isOpened())
@@ -1005,7 +972,7 @@ int main(int argc, char **argv)
 
     // Open output video
     cv::VideoWriter outputVideo;
-    outputVideo.open(outputName, CV_FOURCC('M', 'J', 'P', 'G'), 30.0, S, true);
+    outputVideo.open(outputName, CV_FOURCC('M', 'J', 'P', 'G'), 24.0, S, true);
 
     cv::Mat frame;
     // Point arrays for persistant drawing of COM acceleration
@@ -1313,11 +1280,14 @@ int main(int argc, char **argv)
             {
                 cv::putText(frame, "Average Vel " + rounded + "m/s", velPt, CV_FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
             }
+
             // Draw COM point
             if (i < frameEnd)
             {
                 cv::circle(frame, point, 5, (0, 0, 255), -1);
             }
+
+            // Draw COM acceleration arrows
             for (int j = frameBegin; j < pointarray.size(); j = j + FRAME_JUMP)
             //for (int i = 0; i < pointarray.size(); i++)
             {
